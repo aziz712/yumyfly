@@ -109,7 +109,7 @@ Recommander des plats personnalisés aux utilisateurs à partir de :
 
 GET /recommend?user\_id=<id>\&weight=<poids>
 
-````
+
 - `user_id` : ID de l’utilisateur
 - `weight` : pondération (par défaut 0.5)
 
@@ -120,7 +120,7 @@ GET /recommend?user\_id=<id>\&weight=<poids>
   "recommended": ["Couscous Royal", "Pizza Margherita", "Tajine Poulet", "Burger Bœuf", "Sushi Saumon"]
 }
 
-
+```
 ---
 
 ## 🧪 Évaluation & Logs
