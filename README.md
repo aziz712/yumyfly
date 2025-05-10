@@ -105,16 +105,16 @@ Recommander des plats personnalisés aux utilisateurs à partir de :
 - Sauvegarde des modèles via `joblib`
 
 ### 🔌 API Endpoint
-```
 
-GET /recommend?user\_id=<id>\&weight=<poids>
+
+GET /recommend/userId?&weight=<poids>
 
 
 - `user_id` : ID de l’utilisateur
 - `weight` : pondération (par défaut 0.5)
 
 ### 🔄 Résultat JSON
-```json
+```
 {
   "mode": "hybrid",
   "recommended": ["Couscous Royal", "Pizza Margherita", "Tajine Poulet", "Burger Bœuf", "Sushi Saumon"]
