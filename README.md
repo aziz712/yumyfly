@@ -107,7 +107,7 @@ Recommander des plats personnalisés aux utilisateurs à partir de :
 ### 🔌 API Endpoint
 
 
-GET /recommend/userId?&weight=<poids>
+GET /recommend/userId?&weight=poids
 
 
 - `user_id` : ID de l’utilisateur
