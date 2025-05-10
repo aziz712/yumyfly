@@ -1,7 +1,7 @@
 
 ---
 
-```markdown
+
 # 🍽️ YumyFly – Plateforme MERN de Livraison de Repas
 
 **YumyFly** est une plateforme web de livraison de repas développée en **MERN stack** (MongoDB, Express.js, React/Next.js, Node.js) permettant l'interaction entre restaurants, clients, livreurs et administrateurs. Elle intègre également un **système de recommandation intelligent hybride** basé sur Flask et MongoDB.
@@ -119,7 +119,7 @@ GET /recommend?user\_id=<id>\&weight=<poids>
   "mode": "hybrid",
   "recommended": ["Couscous Royal", "Pizza Margherita", "Tajine Poulet", "Burger Bœuf", "Sushi Saumon"]
 }
-````
+
 
 ---
 
