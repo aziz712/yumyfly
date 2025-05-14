@@ -19,7 +19,7 @@ import os
 
 print("\n🔄 Connexion à MongoDB...")
 try:
-    client = MongoClient("mongodb+srv://azizslama95:Aziz1212@clustera.wa7tpmr.mongodb.net")
+    client = MongoClient("")
     db = client["pfe-yumyfly"]
 
     # Simplified query - we'll use the plats array directly
