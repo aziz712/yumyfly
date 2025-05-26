@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
 import useClientStore from "@/store/useClientStore";
+import clientPromotionService, { Plat as PlatWithPromotion, Promotion } from "@/services/clientPromotion";
 import Link from "next/link";
 import Image from "next/image";
 import {
@@ -38,11 +39,12 @@ import { useCartStore } from "@/store/useCartStore";
 import { toast } from "sonner";
 
 export default function AllPlatsOfCategorie() {
-  const { getAllDisponiblePlatsOfCategorie, plats, isLoading } =
+  const { getAllDisponiblePlatsOfCategorie, plats: initialPlatsFromStore, isLoading } =
     useClientStore();
   const params = useParams();
   const { id } = params as { id: string };
   const { addItem, restaurantGroups } = useCartStore();
+  const [plats, setPlats] = useState<PlatWithPromotion[]>([]);
 
   // State for filters
   const [searchQuery, setSearchQuery] = useState("");
@@ -58,8 +60,40 @@ export default function AllPlatsOfCategorie() {
 
   // Fetch data
   useEffect(() => {
-    getAllDisponiblePlatsOfCategorie(id);
+    const fetchPlatsAndPromotions = async () => {
+      await getAllDisponiblePlatsOfCategorie(id);
+    };
+    fetchPlatsAndPromotions();
   }, [getAllDisponiblePlatsOfCategorie, id]);
+
+  useEffect(() => {
+    const processPlatsWithPromotions = async () => {
+      if (initialPlatsFromStore && initialPlatsFromStore.length > 0) {
+        const platsWithPromotionsPromises = initialPlatsFromStore.map(async (plat) => {
+          const promotion = await clientPromotionService.getPromotionForPlat(plat._id);
+          if (promotion && clientPromotionService.isPromotionActive(promotion.dateDebut, promotion.dateFin)) {
+            return {
+              ...plat,
+              promotion: {
+                pourcentage: promotion.pourcentage,
+                prixApresReduction: clientPromotionService.calculatePriceFromPromotion(plat.prix, promotion.pourcentage),
+                dateDebut: promotion.dateDebut,
+                dateFin: promotion.dateFin,
+                isPromotionActive: true,
+              },
+            } as PlatWithPromotion;
+          }
+          return plat as PlatWithPromotion;
+        });
+        const resolvedPlats = await Promise.all(platsWithPromotionsPromises);
+        setPlats(resolvedPlats);
+      } else {
+        setPlats([]); // Clear plats if initialPlatsFromStore is empty
+      }
+    };
+    processPlatsWithPromotions();
+  }, [initialPlatsFromStore]);
+
 
   // Apply filters
   const filteredPlats = plats.filter((plat) => {
@@ -69,7 +103,8 @@ export default function AllPlatsOfCategorie() {
       .includes(searchQuery.toLowerCase());
 
     // Filter by price
-    const priceMatch = plat.prix >= priceRange[0] && plat.prix <= priceRange[1];
+    const currentPrice = clientPromotionService.getCurrentPlatPrice(plat);
+    const priceMatch = currentPrice >= priceRange[0] && currentPrice <= priceRange[1];
 
     // Filter by date
     let dateMatch = true;
@@ -82,6 +117,7 @@ export default function AllPlatsOfCategorie() {
   });
 
   // Update active filters
+  // This useEffect was moved outside the filter function as it's a hook
   useEffect(() => {
     const newActiveFilters = [];
     if (searchQuery) newActiveFilters.push("search");
@@ -119,8 +155,18 @@ export default function AllPlatsOfCategorie() {
   };
 
   // Add to cart function
-  const handleAddToCart = (plat: any) => {
-    addItem(plat);
+  const handleAddToCart = (plat: PlatWithPromotion) => {
+    const priceToAdd = clientPromotionService.getCurrentPlatPrice(plat);
+    const itemToAdd = {
+      ...plat,
+      prix: priceToAdd,
+      restaurant: typeof plat.restaurant === 'object' ? plat.restaurant : { _id: plat.restaurant, nom: 'Restaurant inconnu' }
+    };
+addItem({ 
+  ...itemToAdd,
+  quantity: 1,
+  categorie: typeof itemToAdd.categorie === 'object' ? itemToAdd.categorie : { _id: '', nom: 'Catégorie inconnue' }
+});
 
     // Show success toast
     toast.success(`${plat.nom} ajouté au panier`, {
@@ -229,9 +275,9 @@ export default function AllPlatsOfCategorie() {
                       >
                         {dateRange.from && dateRange.to
                           ? `${format(dateRange.from, "PP")} - ${format(
-                              dateRange.to,
-                              "PP"
-                            )}`
+                            dateRange.to,
+                            "PP"
+                          )}`
                           : "Select date range"}
                       </Button>
                     </PopoverTrigger>
@@ -341,9 +387,20 @@ export default function AllPlatsOfCategorie() {
                       <Heart size={18} className="text-gray-500" />
                     </button>
                     <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-4">
-                      <Badge className="bg-orange-500 hover:bg-orange-600">
-                        {plat.prix.toFixed(2)}DT
-                      </Badge>
+                      {plat.promotion && plat.promotion.isPromotionActive ? (
+                        <>
+                          <Badge className="bg-red-500 hover:bg-red-600">
+                            {plat.promotion.prixApresReduction.toFixed(2)}DT
+                          </Badge>
+                          <Badge variant="outline" className="ml-2 text-white line-through">
+                            {plat.prix.toFixed(2)}DT
+                          </Badge>
+                        </>
+                      ) : (
+                        <Badge className="bg-orange-500 hover:bg-orange-600">
+                          {plat.prix.toFixed(2)}DT
+                        </Badge>
+                      )}
                     </div>
                   </div>
 
@@ -352,11 +409,16 @@ export default function AllPlatsOfCategorie() {
                       <div>
                         <div className="text-sm text-gray-500 mb-1">
                           {typeof plat.categorie === "object" &&
-                          plat.categorie?.nom
+                            plat.categorie?.nom
                             ? plat.categorie.nom
                             : "Catégorie"}
                         </div>
                         <h3 className="font-semibold text-lg">{plat.nom}</h3>
+                        {plat.promotion && plat.promotion.isPromotionActive && (
+                          <Badge variant="destructive" className="mt-1">
+                            -{plat.promotion.pourcentage}%
+                          </Badge>
+                        )}
                       </div>
                       <div className="flex items-center bg-amber-50 px-2 py-1 rounded-md">
                         <span className="text-amber-500 mr-1">★</span>
@@ -423,11 +485,10 @@ export default function AllPlatsOfCategorie() {
                       )}
                       <Button
                         size="icon"
-                        className={`rounded-full ${
-                          isInCart(plat._id)
-                            ? "bg-green-500 hover:bg-green-600"
-                            : "bg-orange-500 hover:bg-orange-600"
-                        }`}
+                        className={`rounded-full ${isInCart(plat._id)
+                          ? "bg-green-500 hover:bg-green-600"
+                          : "bg-orange-500 hover:bg-orange-600"
+                          }`}
                         onClick={() => handleAddToCart(plat)}
                       >
                         <Plus size={18} />

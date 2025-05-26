@@ -38,6 +38,16 @@ export interface Coordinates {
   longitude: number;
 }
 
+export interface PaymentInfo {
+  paymeeToken?: string; // Old Paymee field, can be removed if not used elsewhere
+  konnectPaymentRef?: string; // New Konnect field
+  transactionId?: string;
+  status?: 'pending' | 'paid' | 'failed' | 'cancelled'; // Consistent status
+  method?: string; // e.g., 'Konnect', 'Paymee', 'COD'
+  paidAt?: Date;
+  rawResponse?: any;
+}
+
 export interface Commande {
   _id: string;
   client: string | User;
@@ -48,15 +58,18 @@ export interface Commande {
   coordinates: Coordinates;
   note?: string;
   statut:
-    | "en attente"
-    | "préparation"
-    | "prête"
-    | "assignée"
-    | "en route"
-    | "arrivée"
-    | "livrée";
+  | "en attente"
+  | "Payée" // Added to match backend update
+  | "Paiement échoué" // Added to match backend update
+  | "préparation"
+  | "prête"
+  | "assignée"
+  | "en route"
+  | "arrivée"
+  | "livrée";
   estimationLivraison?: Number;
-  payee: boolean;
+  payee: boolean; // Retained for now, but paymentInfo.status is primary
+  paymentInfo?: PaymentInfo; // Updated paymentInfo structure
   DateSortie?: Date;
   DateArrivee?: Date;
   DateLivraison?: Date;
@@ -203,28 +216,33 @@ export const useCommandeStore = create<CommandeState>()(
           }
         },
 
-        // Confirm Payment
+        // Confirm Paid (Primarily for COD or manual confirmation, webhook handles online payments)
+        // This function might still be relevant for Cash On Delivery orders.
+        // For Konnect, payment status is updated via webhook.
+        // If a manual confirmation is still needed for some cases, it can be kept.
+        // Otherwise, if all payments are online, this might be deprecated or refocused.
         confirmPaid: async (commandeId) => {
           set({ isLoading: true, error: null });
           try {
-            const response = await api.put(
-              `/commandes/${commandeId}/confirm-paid`
-            );
+            // This endpoint might need adjustment if its sole purpose was for Paymee post-payment manual update.
+            // If it's for COD, it remains valid.
+            const response = await api.post(`/commandes/${commandeId}/confirm-paid`);
             const updatedCommande = response.data.commande;
 
             set((state) => ({
               commandes: state.commandes.map((c) =>
                 c._id === commandeId ? updatedCommande : c
               ),
+              currentCommande: state.currentCommande?._id === commandeId ? updatedCommande : state.currentCommande,
               isLoading: false,
             }));
 
-            toast.success("Paiement confirmé avec succès");
+            toast.success("Statut de la commande mis à jour."); // General message
           } catch (error) {
             const err = error as AxiosError<{ message: string }>;
             const errorMessage =
               err.response?.data?.message ||
-              "Erreur lors de la confirmation du paiement";
+              "Erreur lors de la mise à jour du statut de la commande";
             set({ error: errorMessage, isLoading: false });
             toast.error(errorMessage);
           }

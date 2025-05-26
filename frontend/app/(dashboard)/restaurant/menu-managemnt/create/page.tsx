@@ -502,7 +502,7 @@ export default function CreatePlatForm() {
                                     variant="secondary"
                                     className="flex items-center gap-1"
                                   >
-                                    {tag}cscscs
+                                    {tag}
                                   </Badge>
                                 </div>
                               ))}

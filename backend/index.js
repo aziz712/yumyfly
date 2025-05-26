@@ -14,6 +14,7 @@ const avisRoutes = require("./routes/avis.routes.js");
 const { createAdminAccount } = require("./controllers/auth.controller");
 const livreurRoutes = require("./routes/livreur.routes.js");
 const promotionRoutes = require("./routes/promotion.routes.js")
+const paymentRoutes = require("./routes/payment.route.js");
 
 // Load environment variables from .env file
 dotenv.config();
@@ -26,10 +27,14 @@ const app = express();
 const allowedOrigins = [
   "http://localhost:3000",
   "localhost:3000",
-  "https://k8m7bj3t-3000.uks1.devtunnels.ms",
-  "https://k8m7bj3t-3001.uks1.devtunnels.ms",
-  "k8m7bj3t-3000.uks1.devtunnels.ms",
-  "k8m7bj3t-3001.uks1.devtunnels.ms",
+  "https://m8ctpplt-3000.uks1.devtunnels.ms",
+  "https://m8ctpplt-3001.uks1.devtunnels.ms",
+  "m8ctpplt-3000.uks1.devtunnels.ms",
+  "m8ctpplt-3001.uks1.devtunnels.ms",
+  // "https://k8m7bj3t-3000.uks1.devtunnels.ms",
+  // "https://k8m7bj3t-3001.uks1.devtunnels.ms",
+  // "k8m7bj3t-3000.uks1.devtunnels.ms",
+  // "k8m7bj3t-3001.uks1.devtunnels.ms",
 ];
 
 app.use(
@@ -53,7 +58,14 @@ app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 createAdminAccount();
 
 // Middleware to parse JSON bodies
-app.use(express.json());
+app.use(express.json({
+  // We need the raw body for webhook signing
+  verify: (req, res, buf, encoding) => {
+    if (buf && buf.length) {
+      req.rawBody = buf.toString(encoding || 'utf8');
+    }
+  },
+}));
 app.use(express.urlencoded({ extended: true }));
 
 // Routes
@@ -67,6 +79,7 @@ app.use("/api/livreur", livreurRoutes);
 app.use("/api/kpi", KpiRoutes);
 app.use("/api/avis", avisRoutes);
 app.use("/api/promotion", promotionRoutes);
+app.use("/api/payment", paymentRoutes);
 
 
 // Define a simple route for testing

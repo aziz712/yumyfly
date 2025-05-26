@@ -3,6 +3,7 @@
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import useClientStore from "@/store/useClientStore";
+import clientPromotionService, { Plat as PlatWithPromotion, Promotion } from "@/services/clientPromotion";
 import { Loader } from "lucide-react";
 import PlatGallery from "@/components/client/plat/plat-gallery";
 import PlatInfo from "@/components/client/plat/plat-info";
@@ -15,14 +16,40 @@ import { Separator } from "@/components/ui/separator";
 export default function PlatDetailsPage() {
   const params = useParams();
   const { id } = params as { id: string };
-  const { getPlatById, plat, isLoading, likePlat } = useClientStore();
+  const { getPlatById, plat: initialPlatFromStore, isLoading, likePlat } = useClientStore();
+  const [plat, setPlat] = useState<PlatWithPromotion | null>(null);
   const [isLiking, setIsLiking] = useState(false);
-  const fetchData = async () => {
-    await getPlatById(id);
-  };
   useEffect(() => {
-    fetchData();
+    const fetchDataAndPromotion = async () => {
+      await getPlatById(id); // Fetches initialPlatFromStore
+    };
+    fetchDataAndPromotion();
   }, [id, getPlatById, isLiking]);
+
+  useEffect(() => {
+    const processPlatWithPromotion = async () => {
+      if (initialPlatFromStore) {
+        const promotion = await clientPromotionService.getPromotionForPlat(initialPlatFromStore._id);
+        if (promotion && clientPromotionService.isPromotionActive(promotion.dateDebut, promotion.dateFin)) {
+          setPlat({
+            ...initialPlatFromStore,
+            promotion: {
+              pourcentage: promotion.pourcentage,
+              prixApresReduction: clientPromotionService.calculatePriceFromPromotion(initialPlatFromStore.prix, promotion.pourcentage),
+              dateDebut: promotion.dateDebut,
+              dateFin: promotion.dateFin,
+              isPromotionActive: true,
+            },
+          } as PlatWithPromotion);
+        } else {
+          setPlat(initialPlatFromStore as PlatWithPromotion);
+        }
+      } else {
+        setPlat(null);
+      }
+    };
+    processPlatWithPromotion();
+  }, [initialPlatFromStore]);
 
   const handleLike = async () => {
     if (isLiking) return;
@@ -59,8 +86,9 @@ export default function PlatDetailsPage() {
           <PlatGallery images={plat.images} videos={plat.videos || []} />
 
           <div className="md:hidden">
-            <PlatInfo plat={plat} />
-            <PlatActions plat={plat} onLike={handleLike} isLiking={isLiking} />
+            {/* Ensure plat is not null before passing to components */}
+            {plat && <PlatInfo plat={plat} />}
+            {plat && <PlatActions plat={plat} onLike={handleLike} isLiking={isLiking} />}
             <Separator className="my-6" />
           </div>
 
@@ -72,14 +100,15 @@ export default function PlatDetailsPage() {
         {/* Right column - Info, Actions, Restaurant */}
         <div className="space-y-8">
           <div className="hidden md:block sticky top-24">
-            <PlatInfo plat={plat} />
-            <PlatActions plat={plat} onLike={handleLike} isLiking={isLiking} />
+            {/* Ensure plat is not null before passing to components */}
+            {plat && <PlatInfo plat={plat} />}
+            {plat && <PlatActions plat={plat} onLike={handleLike} isLiking={isLiking} />}
             <Separator className="my-6" />
-            <RestaurantCard restaurant={plat.restaurant} />
+            {plat && <RestaurantCard restaurant={plat.restaurant} />}
           </div>
 
           <div className="md:hidden">
-            <RestaurantCard restaurant={plat.restaurant} />
+            {plat && <RestaurantCard restaurant={plat.restaurant} />}
           </div>
         </div>
       </div>

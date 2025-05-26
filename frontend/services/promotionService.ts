@@ -262,7 +262,7 @@ export const removePromotion = async (platId: string): Promise<any> => {
     console.log(`Removing promotion for plat: ${platId}`);
     
     const response = await fetch(`${API_URL}/promotion/remove/${platId}`, {
-      method: "DELETE",
+      method: "PATCH",
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${token}`,

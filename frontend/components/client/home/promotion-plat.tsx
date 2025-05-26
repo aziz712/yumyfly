@@ -56,7 +56,7 @@ export default function PromotionPlat() {
 
   return (
     <div className="space-y-6 px-4 sm:px-6 my-10">
-      <SectionHeader title="Promotions Spéciales" viewAllLink="/client/promotions" />
+      <SectionHeader title="Promotions Spéciales" viewAllLink="/client/plats/all" />
 
       {isLoading ? (
         <div className="flex justify-center items-center h-48">
@@ -153,13 +153,7 @@ export default function PromotionPlat() {
         </div>
       )}
 
-      {promotions && promotions.length > 0 && (
-        <div className="flex justify-end">
-          <Link href="/client/promotions" className="flex items-center text-primary hover:underline">
-            Voir toutes les promotions <ChevronRight className="h-4 w-4 ml-1" />
-          </Link>
-        </div>
-      )}
+     
     </div>
   );
 }

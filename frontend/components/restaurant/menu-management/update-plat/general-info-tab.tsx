@@ -60,7 +60,7 @@ export function GeneralInfoTab({ form, categories }: GeneralInfoTabProps) {
               <FormControl>
                 <div className="flex items-center">
                   <Input type="number" step="0.01" min="0" {...field} />
-                  <span className="ml-2">€</span>
+                  <span className="ml-2">TND</span>
                 </div>
               </FormControl>
               <FormMessage />

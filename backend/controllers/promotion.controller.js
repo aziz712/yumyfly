@@ -44,7 +44,7 @@ exports.applyPromotion = async (req, res) => {
     if (plat.promotion) {
       // Update existing promotion instead of creating a new one
       const prixApresReduction = +(plat.prix * (1 - pourcentage / 100)).toFixed(2);
-      
+
       plat.promotion = {
         ...plat.promotion,
         isPromotionActive: isActive,
@@ -53,9 +53,9 @@ exports.applyPromotion = async (req, res) => {
         dateDebut: debut,
         dateFin: fin,
       };
-      
+
       await plat.save();
-      
+
       return res.status(200).json({
         message: isActive ? "Promotion activée avec succès." : "Promotion mise à jour mais désactivée.",
         plat,
@@ -86,7 +86,7 @@ exports.applyPromotion = async (req, res) => {
 };
 
 // Modified to deactivate instead of removing
-exports.removePromotion = async (req, res) => {
+exports.updatePromotion = async (req, res) => {
   const { platId } = req.params;
 
   try {
@@ -97,9 +97,9 @@ exports.removePromotion = async (req, res) => {
     if (plat.promotion) {
       plat.promotion.isPromotionActive = false;
       await plat.save();
-      return res.status(200).json({ 
-        message: "Promotion désactivée avec succès.", 
-        plat 
+      return res.status(200).json({
+        message: "Promotion désactivée avec succès.",
+        plat
       });
     } else {
       return res.status(404).json({ message: "Ce plat n'a pas de promotion." });
@@ -108,6 +108,37 @@ exports.removePromotion = async (req, res) => {
     res.status(500).json({ message: "Erreur serveur", error: err.message });
   }
 };
+
+exports.removePromotion = async (req, res) => {
+  const { platId } = req.params;
+
+  try {
+    const plat = await Plat.findById(platId);
+    if (!plat) return res.status(404).json({ message: "Plat introuvable." });
+
+    // Instead of removing, just set isPromotionActive to false
+    if (plat.promotion) {
+      const updatedPlat = await Plat.findByIdAndUpdate(
+        platId,
+        { $unset: { promotion: "" } },
+        { new: true }
+      );
+      await plat.save();
+      if (!updatedPlat) {
+        return res.status(404).json({ message: 'Plat not updated' });
+      }
+      return res.status(200).json({ 
+        message: 'Promotion field removed successfully', plat: updatedPlat 
+      });
+    } else {
+      return res.status(404).json({ message: "Ce plat n'a pas de promotion." });
+    }
+  } catch (err) {
+    res.status(500).json({ message: "Erreur serveur", error: err.message });
+  }
+};
+
+
 
 // Modified to get ALL promotions (active and inactive)
 exports.getPromotionsByRestaurant = async (req, res) => {
@@ -131,7 +162,7 @@ exports.getPromotionsByRestaurant = async (req, res) => {
         plat.promotion.dateDebut,
         plat.promotion.dateFin
       );
-      
+
       // A promotion is active only if both isPromotionActive flag is true AND dates are valid
       const isActive = plat.promotion.isPromotionActive && datesAreValid;
 
@@ -202,7 +233,7 @@ exports.getPromotionByPlatId = async (req, res) => {
 
   try {
     const plat = await Plat.findById(platId).populate("categorie", "nom");
-    
+
     if (!plat) {
       return res.status(404).json({ message: "Plat introuvable." });
     }
@@ -216,7 +247,7 @@ exports.getPromotionByPlatId = async (req, res) => {
       plat.promotion.dateDebut,
       plat.promotion.dateFin
     );
-    
+
     // A promotion is active only if both isPromotionActive flag is true AND dates are valid
     const isActive = plat.promotion.isPromotionActive && datesAreValid;
 

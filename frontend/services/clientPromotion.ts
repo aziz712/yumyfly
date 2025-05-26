@@ -112,7 +112,7 @@ export const getAllPromotions = async (): Promise<Promotion[]> => {
 // Get promotions for a specific plat
 export const getPromotionForPlat = async (platId: string): Promise<Promotion | null> => {
   try {
-    const response = await api.get(`/client/promotions/plat/${platId}`);
+    const response = await api.get(`/promotion/plat/${platId}`);
     const { promotion } = response.data;
 
     if (!promotion) return null;

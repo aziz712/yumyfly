@@ -1,5 +1,7 @@
 "use client";
 import { useCartStore } from "@/store/useCartStore";
+import { calculatePriceFromPromotion, getPromotionForPlat, isPromotionActive } from "@/services/clientPromotion";
+import { useEffect, useState } from "react";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import Link from "next/link";
 import { Plus, Check, MapPin } from "lucide-react";
@@ -9,11 +11,48 @@ import { toast } from "sonner";
 import Image from "next/image";
 
 export default function PlatCard({ plat }: any) {
+  const [promotion, setPromotion] = useState<any>(null);
+  const [isLoadingPromotion, setIsLoadingPromotion] = useState(true);
+
+  useEffect(() => {
+    const fetchPromotion = async () => {
+      try {
+        setIsLoadingPromotion(true);
+        const promo = await getPromotionForPlat(plat._id);
+        // Use the standalone isPromotionActive function
+        if (promo && isPromotionActive(promo.dateDebut, promo.dateFin)) {
+          setPromotion(promo);
+        }
+      } catch (error) {
+        console.error("Error fetching promotion for plat card:", error);
+        setPromotion(null);
+      } finally {
+        setIsLoadingPromotion(false);
+      }
+    };
+
+    if (plat?._id) {
+      fetchPromotion();
+    }
+  }, [plat?._id]);
+
+  const displayPrice = promotion
+    ? calculatePriceFromPromotion(
+      plat.prix,
+      promotion.pourcentagePromotion
+    )
+    : plat.prix;
   const { addItem, restaurantGroups } = useCartStore();
 
   // Add to cart function
   const handleAddToCart = (plat: any) => {
-    addItem(plat);
+    const priceToAdd = promotion
+      ? calculatePriceFromPromotion(
+        plat.prix,
+        promotion.pourcentagePromotion
+      )
+      : plat.prix;
+    addItem({ ...plat, prix: priceToAdd });
 
     // Show success toast
     toast.success(`${plat.nom} ajouté au panier`, {
@@ -65,8 +104,18 @@ export default function PlatCard({ plat }: any) {
         />
 
         <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-4">
+          {promotion && (
+            <Badge className="bg-red-500 hover:bg-red-600 mr-2">
+              Promo!
+            </Badge>
+          )}
           <Badge className="bg-orange-500 hover:bg-orange-600">
-            {plat.prix.toFixed(2)}DT
+            {promotion && (
+              <span className="text-xs line-through mr-1">
+                {plat.prix.toFixed(2)}DT
+              </span>
+            )}
+            {displayPrice.toFixed(2)}DT
           </Badge>
         </div>
       </div>
@@ -146,11 +195,10 @@ export default function PlatCard({ plat }: any) {
           )}
           <Button
             size="icon"
-            className={`rounded-full ${
-              isInCart(plat._id)
-                ? "bg-green-500 hover:bg-green-600"
-                : "bg-orange-500 hover:bg-orange-600"
-            }`}
+            className={`rounded-full ${isInCart(plat._id)
+              ? "bg-green-500 hover:bg-green-600"
+              : "bg-orange-500 hover:bg-orange-600"
+              }`}
             onClick={() => handleAddToCart(plat)}
           >
             <Plus size={18} />

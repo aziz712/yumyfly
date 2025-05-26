@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation"; // Added for redirection
 import { ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
 import { useCartStore } from "@/store/useCartStore";
@@ -11,8 +12,10 @@ import { RestaurantOrderSummary } from "@/components/cart/order-summary";
 import { useCommandeStore } from "@/store/useCommandeStore";
 import { AddressSelector } from "@/components/cart/address-selector";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import * as paymentService from "@/services/paymentService"; // Updated to generic paymentService
 
 export default function CartPage() {
+  const router = useRouter(); // Added for redirection
   const {
     restaurantGroups,
     removeItem,
@@ -86,6 +89,7 @@ export default function CartPage() {
 
       if (!restaurantGroup) {
         toast.error("Restaurant non trouvé dans le panier");
+        setLoadingRestaurantId(null);
         return;
       }
 
@@ -97,28 +101,64 @@ export default function CartPage() {
         coordinates:
           coordinates.lat && coordinates.lng
             ? {
-                latitude: coordinates.lat,
-                longitude: coordinates.lng,
-              }
+              latitude: coordinates.lat,
+              longitude: coordinates.lng,
+            }
             : null,
         total: getRestaurantGrandTotal(restaurantId),
         serviceFee: getServiceFee(),
         restaurant: restaurantId,
+      
       };
 
       console.log("Order data:", orderData);
 
       // Pass the order data to the API through the store
-      const success = await passCommande(orderData);
-      if (success) {
+      const newCommande = await passCommande(orderData);
+
+      if (newCommande && newCommande._id) {
         toast.success(
           `Votre commande de ${getRestaurantGrandTotal(restaurantId).toFixed(
             2
-          )} DT a été envoyée.`
+          )} DT a été créée. Redirection vers le paiement...`
         );
 
-        // Clear only this restaurant's items after successful checkout
-        clearRestaurantItems(restaurantId);
+        // Create payment with Konnect
+        try {
+          // Ensure all required fields for Konnect are present in newCommande or orderData
+          const paymentPayload = {
+            orderId: newCommande._id,
+            amount: newCommande.total,
+            firstName: typeof newCommande.client === 'object' ? newCommande.client.nom || 'N/A' : 'N/A', // Assuming client is populated or get from user store
+            lastName: typeof newCommande.client === 'object' ? newCommande.client.prenom || 'N/A' : 'N/A',
+            email: typeof newCommande.client === 'object' ? newCommande.client.email || 'default@example.com' : 'default@example.com',
+            phone: typeof newCommande.client === 'object' ? (newCommande.client as any).phone || '00000000' : '00000000', // Type assertion to avoid TypeScript error
+            address: orderData.address, // This was already in orderData
+            // note: orderData.note, // Optional, if Konnect supports it directly in init payload
+          };
+
+          const paymentResponse = await paymentService.initiateKonnectPayment(paymentPayload);
+
+          if (paymentResponse && paymentResponse.payment_url) {
+            // Clear only this restaurant's items after successful checkout and before redirection
+            clearRestaurantItems(restaurantId);
+            router.push(paymentResponse.payment_url);
+          } else {
+            toast.error(
+              paymentResponse?.message || "Erreur lors de la création du lien de paiement Konnect. Veuillez réessayer."
+            );
+          }
+        } catch (paymentError: any) {
+          console.error("Konnect payment creation error:", paymentError);
+          toast.error(
+            paymentError.response?.data?.message || "Une erreur s'est produite lors de la création du paiement Konnect. Veuillez réessayer."
+          );
+        }
+      } else {
+        // This case might occur if passCommande returns null or an object without _id
+        toast.error(
+          "Erreur lors de la création de la commande. Veuillez réessayer."
+        );
       }
     } catch (error) {
       console.error("Checkout error:", error);

@@ -163,7 +163,7 @@ export default function PromotionsPage() {
       }
 
       console.log("Directly fetched promotions:", data);
-      
+
       // Transform the data to match our Promotion interface
       const formattedPromotions = Array.isArray(data) ? data.map((promo: any) => {
         // Make sure plat data exists
@@ -171,51 +171,62 @@ export default function PromotionsPage() {
           console.warn("Promotion without plat data:", promo);
           return null;
         }
-        
+
         // Handle case where plat might be just an ID string
         const platObj = typeof promo.plat === 'string'
           ? { _id: promo.plat, nom: "Chargement...", prix: 0, image: null }
           : promo.plat;
-        
+
+        const rawPlatImage = platObj.image;
+        let imageUrl;
+        if (!rawPlatImage) {
+          imageUrl = "/placeholder-food.jpg"; // Default placeholder
+        } else if (rawPlatImage.startsWith('http://') || rawPlatImage.startsWith('https://')) {
+          imageUrl = rawPlatImage; // Already a full URL
+        } else {
+          // Construct full URL from relative path
+          const baseUrl = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api').replace('/api', '');
+          imageUrl = `${baseUrl}/${rawPlatImage.startsWith('/') ? rawPlatImage.substring(1) : rawPlatImage}`;
+        }
+
         const prixOriginal = platObj.prix || 0;
         const pourcentage = promo.pourcentage || 0;
         const prixApresReduction = prixOriginal - (prixOriginal * pourcentage / 100);
-        
+
         // Use the isPromotionActive flag from the backend directly
         // This ensures we respect the manual activation/deactivation status
-        const isPromotionActive = promo.isPromotionActive === undefined ? 
+        const isPromotionActive = promo.isPromotionActive === undefined ?
           // Fallback to date-based calculation if the flag isn't provided
           (() => {
             const now = new Date();
             const dateDebut = new Date(promo.dateDebut);
             const dateFin = new Date(promo.dateFin);
             return now >= dateDebut && now <= dateFin;
-          })() : 
+          })() :
           // Otherwise use the flag from the backend
           promo.isPromotionActive;
-        
+
         // Calculate days left
         const diffTime = new Date(promo.dateFin).getTime() - new Date().getTime();
         const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
         const joursRestants = diffDays <= 0 ? "Terminée" :
-          diffDays === 1 ? "1 jour restant" :
-          `${diffDays} jours restants`;
-        
+          `${diffDays} jour${diffDays > 1 ? 's' : ''} restant${diffDays > 1 ? 's' : ''}`;
+
         return {
-          _id: promo._id || `temp-${Date.now()}-${Math.random()}`,
+          _id: promo._id,
           plat: {
             _id: platObj._id,
-            nom: platObj.nom || "Plat sans nom",
-            image: platObj.image || "/placeholder-food.jpg",
-            prix: prixOriginal
+            nom: platObj.nom,
+            image: imageUrl, // Use the processed imageUrl
+            prix: platObj.prix,
           },
-          pourcentage: pourcentage,
-          prixApresReduction: prixApresReduction,
+          pourcentage: promo.pourcentage,
+          prixApresReduction,
           dateDebut: promo.dateDebut,
           dateFin: promo.dateFin,
           message: promo.message || "",
-          isPromotionActive: isPromotionActive,
-          joursRestants: joursRestants
+          isPromotionActive,
+          joursRestants,
         };
       }).filter(Boolean) : [];
 
@@ -441,15 +452,16 @@ export default function PromotionsPage() {
       // but just change the isActive status
       const formattedData = {
         platId: promotion.plat._id,
+        image: promotion.plat.image,
         pourcentage: promotion.pourcentage,
         dateDebut: promotion.dateDebut,
         dateFin: promotion.dateFin,
         message: promotion.message || "",
         isActive: newStatus // This is the key change
       };
-      
+
       const success = await updatePromotion(promotion.plat._id, formattedData);
-  
+
       if (success) {
         toast.success(`Promotion ${newStatus ? "activée" : "désactivée"} avec succès.`);
         refreshPromotions();

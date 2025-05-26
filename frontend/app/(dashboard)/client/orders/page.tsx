@@ -23,6 +23,59 @@ import { fr } from "date-fns/locale";
 import { CalendarIcon, Search, Star } from "lucide-react";
 import { cn } from "@/lib/utils";
 import OrderCard from "@/components/orders/order-card";
+import { useSearchParams } from 'next/navigation';
+import { FaCheckCircle, FaTimesCircle, FaWindowClose } from 'react-icons/fa';
+
+const PaymentStatusPopup = () => {
+  const searchParams = useSearchParams();
+  const paymentStatus = searchParams.get('payment_status');
+  const orderId = searchParams.get('order_id');
+  const paymentRef = searchParams.get('payment_ref');
+  const [isVisible, setIsVisible] = useState(false);
+
+  useEffect(() => {
+    if (paymentStatus && (paymentStatus === 'success' || paymentStatus === 'failed')) {
+      setIsVisible(true);
+      const timer = setTimeout(() => {
+        setIsVisible(false);
+      }, 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [paymentStatus]);
+
+  if (!isVisible || !paymentStatus) return null;
+
+  const isSuccess = paymentStatus === 'success';
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white p-6 rounded-lg shadow-xl max-w-sm w-full text-center relative">
+        <button
+          onClick={() => setIsVisible(false)}
+          className="absolute top-2 right-2 text-gray-500 hover:text-gray-700"
+        >
+          <FaWindowClose size={20} />
+        </button>
+        {isSuccess ? (
+          <FaCheckCircle size={48} className="text-green-500 mx-auto mb-4" />
+        ) : (
+          <FaTimesCircle size={48} className="text-red-500 mx-auto mb-4" />
+        )}
+        <h2 className={`text-xl font-semibold mb-2 ${isSuccess ? 'text-green-700' : 'text-red-700'}`}>
+          {isSuccess ? 'Paiement Réussi' : 'Échec du Paiement'}
+        </h2>
+        <p className="text-gray-600 mb-1">ID de la Commande: {orderId}</p>
+        <p className="text-gray-600 mb-4">Référence de Paiement: {paymentRef}</p>
+        <p className="text-sm text-gray-500">
+          {isSuccess
+            ? 'Votre paiement a été traité avec succès.'
+            : 'Nous n\'avons pas pu traiter votre paiement. Veuillez réessayer ou contacter le support.'}
+        </p>
+      </div>
+    </div>
+  );
+};
+
 export default function MyOrders() {
   const { getAllMyCommandes, isLoading, error, commandes } = useCommandeStore();
   const [searchTerm, setSearchTerm] = useState("");
@@ -141,6 +194,7 @@ export default function MyOrders() {
 
   return (
     <div className="container mx-auto py-8 px-4">
+      <PaymentStatusPopup />
       <h1 className="text-3xl font-bold mb-6">Mes Commandes</h1>
 
       {/* Filters */}

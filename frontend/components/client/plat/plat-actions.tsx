@@ -13,8 +13,11 @@ import { toast } from "sonner";
 import useAuthStore from "@/store/useAuthStore";
 import { useCartStore } from "@/store/useCartStore";
 
+// calculatePriceFromPromotion is not needed here if prixApresReduction is used from plat.promotion
+// import { calculatePriceFromPromotion } from "@/services/clientPromotion";
+
 interface PlatActionsProps {
-  plat: any;
+  plat: any; // Ideally this should be typed with PlatWithPromotion
   onLike: () => Promise<void>;
   isLiking: boolean;
 }
@@ -83,7 +86,11 @@ export default function PlatActions({
       );
     } else {
       // Add new item to cart
-      addItem(plat);
+      const activePromotion = plat.promotion && plat.promotion.isPromotionActive ? plat.promotion : null;
+      const priceToAdd = activePromotion
+        ? activePromotion.prixApresReduction // Use the pre-calculated price from plat.promotion
+        : plat.prix;
+      addItem({ ...plat, prix: priceToAdd });
       toast.success(`Added ${quantity} ${plat.nom} to cart`);
     }
 

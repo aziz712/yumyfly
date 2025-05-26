@@ -19,9 +19,15 @@ router.delete(
   "/remove/:platId",
   authMiddleware,
   restaurantMiddleware,
-  promotionController.removePromotion
+  promotionController.updatePromotion
 );
 
+router.patch(
+  "/remove/:platId",
+  authMiddleware,
+  restaurantMiddleware,
+  promotionController.removePromotion
+);
 //  Route pour récupérer toutes les promotions actives d'un restaurant
 router.get(
   "/restaurant/:restaurantId",

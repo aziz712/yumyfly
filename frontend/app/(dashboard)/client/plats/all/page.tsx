@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect, Suspense } from "react";
 import useClientStore from "@/store/useClientStore";
+import clientPromotionService, { Plat as PlatWithPromotion, Promotion } from "@/services/clientPromotion";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCartStore } from "@/store/useCartStore";
 import Link from "next/link";
@@ -44,10 +45,11 @@ function AllDisponiblePlats() {
   const {
     getAllDisponiblePlats,
     getAllCategories,
-    plats,
+    plats: initialPlatsFromStore,
     categories,
     isLoading,
   } = useClientStore();
+  const [plats, setPlats] = useState<PlatWithPromotion[]>([]);
   const { getTotalItemCount } = useCartStore();
 
   // State for filters
@@ -67,11 +69,39 @@ function AllDisponiblePlats() {
   // Fetch data
   useEffect(() => {
     const fetchData = async () => {
-      await getAllDisponiblePlats();
+      await getAllDisponiblePlats(); // This fetches initialPlatsFromStore
       await getAllCategories();
     };
     fetchData();
   }, [getAllDisponiblePlats, getAllCategories]);
+
+  useEffect(() => {
+    const processPlatsWithPromotions = async () => {
+      if (initialPlatsFromStore && initialPlatsFromStore.length > 0) {
+        const platsWithPromotionsPromises = initialPlatsFromStore.map(async (plat) => {
+          const promotion = await clientPromotionService.getPromotionForPlat(plat._id);
+          if (promotion && clientPromotionService.isPromotionActive(promotion.dateDebut, promotion.dateFin)) {
+            return {
+              ...plat,
+              promotion: {
+                pourcentage: promotion.pourcentage,
+                prixApresReduction: clientPromotionService.calculatePriceFromPromotion(plat.prix, promotion.pourcentage),
+                dateDebut: promotion.dateDebut,
+                dateFin: promotion.dateFin,
+                isPromotionActive: true,
+              },
+            } as PlatWithPromotion;
+          }
+          return plat as PlatWithPromotion;
+        });
+        const resolvedPlats = await Promise.all(platsWithPromotionsPromises);
+        setPlats(resolvedPlats);
+      } else {
+        setPlats([]);
+      }
+    };
+    processPlatsWithPromotions();
+  }, [initialPlatsFromStore]);
 
   // Sync searchQuery with URL query string
   useEffect(() => {
@@ -86,7 +116,9 @@ function AllDisponiblePlats() {
       .toLowerCase()
       .includes(searchQuery.toLowerCase());
     // Filter by price
-    const priceMatch = plat.prix >= priceRange[0] && plat.prix <= priceRange[1];
+    const currentPrice = clientPromotionService.getCurrentPlatPrice(plat);
+    const priceMatch = currentPrice >= priceRange[0] && currentPrice <= priceRange[1];
+
     // Filter by date
     let dateMatch = true;
     if (dateRange.from && dateRange.to) {
@@ -105,11 +137,13 @@ function AllDisponiblePlats() {
 
   // Sort filtered plats
   const sortedPlats = [...filteredPlats].sort((a, b) => {
+    const priceA = clientPromotionService.getCurrentPlatPrice(a);
+    const priceB = clientPromotionService.getCurrentPlatPrice(b);
     switch (sortOption) {
       case "price-low":
-        return a.prix - b.prix;
+        return priceA - priceB;
       case "price-high":
-        return b.prix - a.prix;
+        return priceB - priceA;
       case "newest":
         return (
           new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()

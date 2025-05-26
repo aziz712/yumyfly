@@ -2,11 +2,19 @@ import { Badge } from "@/components/ui/badge";
 import { CalendarDays, Clock, Tag } from "lucide-react";
 import Link from "next/link";
 
+// calculatePriceFromPromotion is not needed here if prixApresReduction is used from plat.promotion
+// import { calculatePriceFromPromotion } from "@/services/clientPromotion";
+
 interface PlatInfoProps {
-  plat: any;
+  plat: any; // Ideally this should be typed with PlatWithPromotion
 }
 
 export default function PlatInfo({ plat }: PlatInfoProps) {
+  const activePromotion = plat.promotion && plat.promotion.isPromotionActive ? plat.promotion : null;
+
+  const displayPrice = activePromotion
+    ? activePromotion.prixApresReduction // Use the pre-calculated price from plat.promotion
+    : plat.prix;
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
@@ -42,7 +50,12 @@ export default function PlatInfo({ plat }: PlatInfoProps) {
       </div>
 
       <div className="text-2xl font-bold text-primary">
-        {plat.prix.toFixed(2)} DT
+        {activePromotion && (
+          <span className="text-sm line-through text-gray-500 mr-2">
+            {plat.prix.toFixed(2)} DT
+          </span>
+        )}
+        {displayPrice.toFixed(2)} DT
       </div>
 
       <p className="text-gray-700 leading-relaxed max-w-full break-words overflow-hidden text-wrap">
