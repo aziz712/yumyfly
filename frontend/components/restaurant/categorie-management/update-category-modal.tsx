@@ -102,7 +102,7 @@ export default function UpdateCategoryModal({
       URL.revokeObjectURL(imagePreview);
     }
     setImageFile(null);
-    setImagePreview(category.image);
+    setImagePreview(null);
     setIsImageChanged(false);
   };
 
@@ -190,8 +190,10 @@ export default function UpdateCategoryModal({
                   <div className="relative aspect-video w-full rounded-md overflow-hidden border">
                     <Image
                       src={
-                        process.env.NEXT_PUBLIC_APP_URL + imagePreview ||
-                        "/placeholder.svg"
+                        imagePreview?.startsWith("blob:") ||
+                          imagePreview?.startsWith("http")
+                          ? imagePreview
+                          : process.env.NEXT_PUBLIC_APP_URL + imagePreview
                       }
                       alt="Category preview"
                       fill
@@ -202,7 +204,7 @@ export default function UpdateCategoryModal({
                     type="button"
                     variant="outline"
                     size="icon"
-                    className="absolute top-2 right-2 bg-background/80 backdrop-blur-sm"
+                    className="absolute top-2 right-2 bg-background/80 backdrop-blur-sm cursor-pointer"
                     onClick={removeImage}
                   >
                     <X className="h-4 w-4" />

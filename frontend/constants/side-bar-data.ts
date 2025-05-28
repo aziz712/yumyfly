@@ -5,6 +5,17 @@ import {
   Truck,
   Command,
   Percent,
+  ShoppingCart,
+  Utensils,
+  FolderPlus,
+  ChefHat,
+  ChartBarStacked,
+  ShieldUser,
+  UserCog,
+  SquareMenu,
+  BadgePlus,
+  FolderCog,
+  IceCreamBowl,
   Users,
 } from "lucide-react";
 // Define types for our sidebar items
@@ -128,22 +139,22 @@ export const clientSidebarConfig: SidebarConfig = {
     {
       title: "Toutes les catégories",
       path: "/client/categories",
-      icon: LayoutDashboard,
+      icon: ChartBarStacked,
     },
     {
       title: "Tous les plats",
       path: "/client/plats/all",
-      icon: LayoutDashboard,
+      icon: Utensils,
     },
     {
       title: "Tous les restaurants",
       path: "/client/restaurant/",
-      icon: LayoutDashboard,
+      icon: Store,
     },
     {
       title: "Mon panier",
       path: "/client/cart",
-      icon: LayoutDashboard,
+      icon: ShoppingCart,
     },
     {
       title: "Mes commandes",
@@ -163,41 +174,41 @@ export const restaurantSidebarConfig: SidebarConfig = {
     {
       title: "mon restaurant",
       path: "/restaurant/restaurant-managemnt",
-      icon: Store,
+      icon: ChefHat,
       submenu: [
         {
           title: "profil du restaurant",
           path: "/restaurant/restaurant-managemnt",
-          icon: FileText,
+          icon: ShieldUser,
         },
         {
           title: "mettre à jour mon restaurant",
           path: "/restaurant/restaurant-managemnt/update-restaurant",
-          icon: FileText,
+          icon: UserCog,
         },
       ],
     },
     {
       title: "Gestion du menu",
       path: "/restaurant/menu",
-      icon: FileText,
+      icon: SquareMenu,
       submenu: [
         {
           title: "tous les plats",
           path: "/restaurant/menu-managemnt",
-          icon: FileText,
+          icon: IceCreamBowl,
         },
         {
           title: "ajouter des plat",
           path: "/restaurant/menu-managemnt/create",
-          icon: FileText,
+          icon: BadgePlus,
         },
       ],
     },
     {
       title: "Gestion des categories",
       path: "/restaurant",
-      icon: FileText,
+      icon: FolderCog,
       submenu: [
         {
           title: "Toutes les catégories",
@@ -222,7 +233,7 @@ export const restaurantSidebarConfig: SidebarConfig = {
     {
       title: "gérer les livreur",
       path: "/restaurant",
-      icon: FileText,
+      icon: Truck,
       submenu: [
         {
           title: "Toutes les livreur",
@@ -232,7 +243,7 @@ export const restaurantSidebarConfig: SidebarConfig = {
         {
           title: "ajouter  livreur",
           path: "/restaurant/livreur/add",
-          icon: FileText,
+          icon: FolderPlus,
         },
       ],
     },
@@ -255,7 +266,7 @@ export const livreurSidebarConfig: SidebarConfig = {
     {
       title: "Ordres",
       path: "/livreur/orders",
-      icon: Store,
+      icon: Truck,
     },
   ],
 };

@@ -1,7 +1,6 @@
 "use client";
 import { useCartStore } from "@/store/useCartStore";
-import { calculatePriceFromPromotion, getPromotionForPlat, isPromotionActive } from "@/services/clientPromotion";
-import { useEffect, useState } from "react";
+import { calculatePriceFromPromotion, isPromotionActive as isPlatPromotionActiveChecker } from "@/services/clientPromotion"; // Renamed to avoid conflict
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import Link from "next/link";
 import { Plus, Check, MapPin } from "lucide-react";
@@ -10,49 +9,50 @@ import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import Image from "next/image";
 
-export default function PlatCard({ plat }: any) {
-  const [promotion, setPromotion] = useState<any>(null);
-  const [isLoadingPromotion, setIsLoadingPromotion] = useState(true);
+// Define a more specific type for the plat prop
+interface Plat {
+  _id: string;
+  nom: string;
+  prix: number;
+  disponible: boolean;
+  images: string[];
+  categorie?: { nom: string };
+  restaurant?: { nom: string };
+  description: string;
+  ingredients: string[];
+  promotion?: {
+    pourcentage: number;
+    prixApresReduction: number;
+    dateDebut: string;
+    dateFin: string;
+    isPromotionActive: boolean;
+  };
+}
 
-  useEffect(() => {
-    const fetchPromotion = async () => {
-      try {
-        setIsLoadingPromotion(true);
-        const promo = await getPromotionForPlat(plat._id);
-        // Use the standalone isPromotionActive function
-        if (promo && isPromotionActive(promo.dateDebut, promo.dateFin)) {
-          setPromotion(promo);
-        }
-      } catch (error) {
-        console.error("Error fetching promotion for plat card:", error);
-        setPromotion(null);
-      } finally {
-        setIsLoadingPromotion(false);
-      }
-    };
+interface PlatCardProps {
+  plat: Plat;
+}
 
-    if (plat?._id) {
-      fetchPromotion();
-    }
-  }, [plat?._id]);
-
-  const displayPrice = promotion
-    ? calculatePriceFromPromotion(
-      plat.prix,
-      promotion.pourcentagePromotion
-    )
-    : plat.prix;
+export default function PlatCard({ plat }: PlatCardProps) {
   const { addItem, restaurantGroups } = useCartStore();
 
+  // Determine if the promotion is active directly from the plat object
+  const activePromotion = plat.promotion && plat.promotion.isPromotionActive && isPlatPromotionActiveChecker(plat.promotion.dateDebut, plat.promotion.dateFin)
+    ? plat.promotion
+    : null;
+
+  const displayPrice = activePromotion
+    ? activePromotion.prixApresReduction
+    : plat.prix;
+
   // Add to cart function
-  const handleAddToCart = (plat: any) => {
-    const priceToAdd = promotion
-      ? calculatePriceFromPromotion(
-        plat.prix,
-        promotion.pourcentagePromotion
-      )
+  const handleAddToCart = () => {
+    // Use the pre-calculated prixApresReduction if promotion is active
+    const priceToAdd = activePromotion
+      ? activePromotion.prixApresReduction
       : plat.prix;
-    addItem({ ...plat, prix: priceToAdd });
+
+    addItem({ ...plat, prix: priceToAdd, promotion: activePromotion || undefined });
 
     // Show success toast
     toast.success(`${plat.nom} ajouté au panier`, {
@@ -93,24 +93,22 @@ export default function PlatCard({ plat }: any) {
           width={400}
           height={400}
           src={
-            process.env.NEXT_PUBLIC_APP_URL + plat.images[0] ||
-            "/placeholder.svg?height=200&width=300" ||
-            "/placeholder.svg" ||
-            "/placeholder.svg" ||
-            "/placeholder.svg"
+            (plat.images && plat.images.length > 0
+              ? process.env.NEXT_PUBLIC_APP_URL + plat.images[0]
+              : "/placeholder.svg") || "/placeholder.svg"
           }
           alt={plat.nom}
           className="absolute inset-0 h-full w-full object-cover"
         />
 
         <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-4">
-          {promotion && (
+          {activePromotion && (
             <Badge className="bg-red-500 hover:bg-red-600 mr-2">
-              Promo!
+              Promo! -{activePromotion.pourcentage}%
             </Badge>
           )}
           <Badge className="bg-orange-500 hover:bg-orange-600">
-            {promotion && (
+            {activePromotion && (
               <span className="text-xs line-through mr-1">
                 {plat.prix.toFixed(2)}DT
               </span>
@@ -137,9 +135,7 @@ export default function PlatCard({ plat }: any) {
           <div className="flex items-center">
             <MapPin size={14} className="mr-1" />
             <span className="truncate max-w-[120px]">
-              {typeof plat.restaurant === "object"
-                ? plat.restaurant.nom
-                : "Restaurant"}
+              {plat.restaurant?.nom || "Restaurant"}
             </span>
           </div>
         </div>
@@ -198,10 +194,15 @@ export default function PlatCard({ plat }: any) {
             className={`rounded-full ${isInCart(plat._id)
               ? "bg-green-500 hover:bg-green-600"
               : "bg-orange-500 hover:bg-orange-600"
-              }`}
-            onClick={() => handleAddToCart(plat)}
+              } text-white transition-all ease-in-out duration-200 hover:scale-110`}
+            onClick={handleAddToCart}
+            disabled={!plat.disponible} // Assuming plat has a 'disponible' property
           >
-            <Plus size={18} />
+            {isInCart(plat._id) ? (
+              <Check size={18} />
+            ) : (
+              <Plus size={18} />
+            )}
           </Button>
         </div>
       </CardFooter>

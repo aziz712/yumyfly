@@ -1,6 +1,14 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
+export interface Promotion {
+  pourcentage: number;
+  prixApresReduction: number;
+  dateDebut: string;
+  dateFin: string;
+  isPromotionActive: boolean;
+};
+
 export interface CartItem {
   _id: string;
   nom: string;
@@ -11,6 +19,7 @@ export interface CartItem {
   categorie: string;
   restaurant: any; // Can be string ID or object with restaurant details
   quantity: number;
+  promotion?: Promotion;
 }
 
 export interface RestaurantGroup {

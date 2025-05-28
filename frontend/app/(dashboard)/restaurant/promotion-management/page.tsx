@@ -670,15 +670,7 @@ export default function PromotionsPage() {
                 >
                   Ajouter une promotion
                 </Button>
-                {process.env.NODE_ENV === 'development' && (
-                  <Button
-                    variant="outline"
-                    onClick={analyzeRestaurantData}
-                    className="mt-2 sm:mt-0"
-                  >
-                    Analyser les données
-                  </Button>
-                )}
+               
               </div>
             </div>
           )}

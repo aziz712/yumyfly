@@ -1,5 +1,4 @@
-python -m venv venv
-source venv/bin/activate  # ou `venv\\Scripts\\activate` sur Windows
+#python -m venv venv
+#`venv\\Scripts\\activate` sur Windows  ou source venv/bin/activate
 
-pip install flask pandas numpy scikit-learn joblib
-pip install pandas scikit-learn flask pymongo
+pip install flask pandas numpy scikit-learn joblib pymongo os-sys
