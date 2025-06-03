@@ -226,7 +226,7 @@ export const useCommandeStore = create<CommandeState>()(
           try {
             // This endpoint might need adjustment if its sole purpose was for Paymee post-payment manual update.
             // If it's for COD, it remains valid.
-            const response = await api.post(`/commandes/${commandeId}/confirm-paid`);
+            const response = await api.put(`/commandes/${commandeId}/confirm-paid`);
             const updatedCommande = response.data.commande;
 
             set((state) => ({

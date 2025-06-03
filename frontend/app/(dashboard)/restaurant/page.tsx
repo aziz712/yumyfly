@@ -171,7 +171,7 @@ export default function RestaurantDashboard() {
               <span className="text-emerald-500 font-medium">
                 Bénéfice
               </span>{" "}
-              global
+              <span className="pl-1">global</span>
             </p>
           </CardContent>
         </Card>
@@ -189,7 +189,8 @@ export default function RestaurantDashboard() {
             </div>
             <p className="text-xs text-muted-foreground mt-1 flex items-center">
               <ArrowUpRight className="mr-1 h-3 w-3 text-blue-500" />
-              <span className="text-blue-500 font-medium">Complété</span> orders
+              <span className="text-blue-500 font-medium">Complété</span> 
+              <span className="pl-1">orders</span>
             </p>
           </CardContent>
         </Card>
@@ -207,8 +208,8 @@ export default function RestaurantDashboard() {
             </div>
             <p className="text-xs text-muted-foreground mt-1 flex items-center">
               <ArrowUpRight className="mr-1 h-3 w-3 text-purple-500" />
-              <span className="text-purple-500 font-medium">Équipe</span> de
-              livraison active
+              <span className="text-purple-500 font-medium">Équipe</span> 
+              <span className="pl-1">de livraison active </span>
             </p>
           </CardContent>
         </Card>

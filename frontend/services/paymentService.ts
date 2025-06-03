@@ -37,12 +37,12 @@ export const initiateKonnectPayment = async (
 };
 
 // If you need to add functions to verify Konnect payment from frontend (though typically handled by backend/webhook):
-// export const verifyKonnectPaymentStatus = async (paymentRef: string) => {
-//   try {
-//     const response = await api.get(`/payment/konnect/verify/${paymentRef}`);
-//     return response.data;
-//   } catch (error: any) {
-//     console.error('Error verifying Konnect payment status:', error.response?.data || error.message);
-//     throw error.response?.data || new Error('Failed to verify Konnect payment status');
-//   }
-// };
+export const verifyKonnectPaymentStatus = async (paymentRef: string) => {
+  try {
+    const response = await api.get(`/payment/konnect/verify/${paymentRef}`);
+    return response.data;
+  } catch (error: any) {
+    console.error('Error verifying Konnect payment status:', error.response?.data || error.message);
+    throw error.response?.data || new Error('Failed to verify Konnect payment status');
+  }
+};

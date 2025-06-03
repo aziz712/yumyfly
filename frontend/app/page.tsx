@@ -88,7 +88,7 @@ export default function HomePage() {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 ">
             <div className="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center mb-4">
               <Utensils className="h-6 w-6 text-orange-500" />
             </div>
@@ -157,7 +157,7 @@ export default function HomePage() {
             />
           </div>
           {/* text content section */}
-          <div className="flex flex-col justify-center gap-6 sm:pt-0">
+          <div className="flex flex-col justify-center gap-6 sm:pt-0 px-10 ">
             <h1 className="text-3xl sm:text-4xl font-bold">
               Lorem, ipsum dolor.
             </h1>

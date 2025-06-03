@@ -259,9 +259,9 @@ export default function AdminDashboard() {
             <p className="text-xs text-muted-foreground mt-1 flex items-center">
               <ArrowUpRight className="mr-1 h-3 w-3 text-emerald-500" />
               <span className="text-emerald-500 font-medium">
-                Partenaires de restauration
+                Partenaires de restauration 
               </span>{" "}
-              actifs
+               <span className="pl-1">actifs</span>
             </p>
           </CardContent>
         </Card>
@@ -280,7 +280,7 @@ export default function AdminDashboard() {
             <p className="text-xs text-muted-foreground mt-1 flex items-center">
               <ArrowUpRight className="mr-1 h-3 w-3 text-emerald-500" />
               <span className="text-emerald-500 font-medium">Base </span>{" "}
-              d'utilisateurs croissante
+              <span className="pl-1">d'utilisateurs croissante</span> 
             </p>
           </CardContent>
         </Card>
@@ -322,8 +322,8 @@ export default function AdminDashboard() {
             </div>
             <p className="text-xs text-muted-foreground mt-1 flex items-center">
               <ArrowUpRight className="mr-1 h-3 w-3 text-emerald-500" />
-              <span className="text-emerald-500 font-medium">Flux</span> de
-              revenus sain
+              <span className="text-emerald-500 font-medium">Flux</span>
+              <span className="pl-1">de revenus sain</span>
             </p>
           </CardContent>
         </Card>

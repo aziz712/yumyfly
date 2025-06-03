@@ -43,7 +43,7 @@ const commandeSchema = new mongoose.Schema(
       transactionId: { type: String }, // General transaction ID from payment gateway
       status: {
         type: String,
-        enum: ['pending', 'processing', 'paid', 'failed', 'cancelled', 'succeeded'], // Added 'processing', 'succeeded' from Konnect
+        enum: ['pending', 'processing', 'paid', 'failed', 'cancelled', 'success'], // Added 'processing', 'succeeded' from Konnect
         default: 'pending'
       },
       method: { type: String }, // e.g., 'Konnect', 'Paymee', 'COD'

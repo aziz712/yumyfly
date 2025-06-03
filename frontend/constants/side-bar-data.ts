@@ -61,7 +61,7 @@ export const adminSidebarConfig: SidebarConfig = {
       ],
     },
     {
-      title: "Gérer tous les commandes",
+      title: "Consulter tous les commandes",
       path: "/admin/commandes-management",
       icon: Command,
       submenu: [
@@ -231,12 +231,12 @@ export const restaurantSidebarConfig: SidebarConfig = {
       ],
     },
     {
-      title: "gérer les livreur",
+      title: "gérer les livreurs",
       path: "/restaurant",
       icon: Truck,
       submenu: [
         {
-          title: "Toutes les livreur",
+          title: "Tous les livreurs",
           path: "/restaurant/livreur",
           icon: FileText,
         },
@@ -248,7 +248,7 @@ export const restaurantSidebarConfig: SidebarConfig = {
       ],
     },
     {
-      title: "Ordres",
+      title: "Commandes",
       path: "/restaurant/orders",
       icon: Store,
     },

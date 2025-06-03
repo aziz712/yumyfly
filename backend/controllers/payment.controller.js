@@ -144,7 +144,7 @@ exports.handleKonnectWebhook = async (req, res) => {
         }
 
         // Konnect statuses: "pending", "processing", "succeeded", "failed", "canceled"
-        if (status === 'succeeded') {
+        if (status === 'success') {
             commande.statut = 'Payée';
             commande.paymentInfo = {
                 ...commande.paymentInfo,
@@ -205,7 +205,7 @@ exports.verifyKonnectPayment = async (req, res) => {
             const commande = await Commande.findById(konnectPaymentData.orderId);
             if (commande) {
                 let updated = false;
-                if (konnectPaymentData.status === 'succeeded' && commande.paymentInfo.status !== 'paid') {
+                if (konnectPaymentData.status === 'success' && commande.paymentInfo.status !== 'paid') {
                     commande.statut = 'Payée';
                     commande.paymentInfo.status = 'paid';
                     commande.paymentInfo.transactionId = konnectPaymentData.transactionId || paymentRef;
