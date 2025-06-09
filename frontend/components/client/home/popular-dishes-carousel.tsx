@@ -59,14 +59,36 @@ export default function PopularDishesCarousel() {
 
       <Carousel className="w-full">
         <CarouselContent className="-ml-2 md:-ml-4">
-          {randomPlats.map((plat) => (
-            <CarouselItem
-              key={plat._id}
-              className="pl-2 md:pl-4 basis-1/1 md:basis-1/2 lg:basis-1/3 xl:basis-1/4"
-            >
-              <PlatCard plat={plat} />
-            </CarouselItem>
-          ))}
+          {randomPlats.map((plat) => {
+            let categoryObj = undefined;
+            if (typeof plat.categorie === "string" && plat.categorie) {
+              categoryObj = { nom: plat.categorie };
+            } else if (plat.categorie && typeof plat.categorie === "object") {
+              categoryObj = { nom: plat.categorie.nom };
+            }
+
+            let restaurantObj = undefined;
+            if (typeof plat.restaurant === "string" && plat.restaurant) {
+              restaurantObj = { nom: plat.restaurant };
+            } else if (plat.restaurant && typeof plat.restaurant === "object") {
+              restaurantObj = { nom: plat.restaurant.nom };
+            }
+
+            return (
+              <CarouselItem
+                key={plat._id}
+                className="pl-2 md:pl-4 basis-1/1 md:basis-1/2 lg:basis-1/3 xl:basis-1/4"
+              >
+                <PlatCard
+                  plat={{
+                    ...plat,
+                    categorie: categoryObj,
+                    restaurant: restaurantObj,
+                  }}
+                />
+              </CarouselItem>
+            );
+          })}
         </CarouselContent>
       </Carousel>
     </div>

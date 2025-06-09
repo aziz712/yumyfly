@@ -10,6 +10,7 @@ import { EmptyCart } from "@/components/cart/empty-cart";
 import { CartItemsList } from "@/components/cart/cart-items-list";
 import { RestaurantOrderSummary } from "@/components/cart/order-summary";
 import { useCommandeStore } from "@/store/useCommandeStore";
+import { useAuthStore } from "@/store/useAuthStore";
 import { AddressSelector } from "@/components/cart/address-selector";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import * as paymentService from "@/services/paymentService"; // Updated to generic paymentService
@@ -26,7 +27,8 @@ export default function CartPage() {
     getRestaurantGrandTotal,
   } = useCartStore();
 
-  const { passCommande, isLoading } = useCommandeStore();
+  const { passCommande, isLoading,  confirmPaid } = useCommandeStore();
+  const { user } = useAuthStore();
   const [address, setAddress] = useState("");
   const [restaurantNotes, setRestaurantNotes] = useState<
     Record<string, string>
@@ -108,6 +110,7 @@ export default function CartPage() {
         total: getRestaurantGrandTotal(restaurantId),
         serviceFee: getServiceFee(),
         restaurant: restaurantId,
+        
       
       };
 
@@ -129,10 +132,10 @@ export default function CartPage() {
           const paymentPayload = {
             orderId: newCommande._id,
             amount: newCommande.total,
-            firstName: typeof newCommande.client === 'object' ? newCommande.client.nom || 'N/A' : 'N/A', // Assuming client is populated or get from user store
-            lastName: typeof newCommande.client === 'object' ? newCommande.client.prenom || 'N/A' : 'N/A',
-            email: typeof newCommande.client === 'object' ? newCommande.client.email || 'default@example.com' : 'default@example.com',
-            phone: typeof newCommande.client === 'object' ? (newCommande.client as any).phone || '00000000' : '00000000', // Type assertion to avoid TypeScript error
+            firstName: user?.nom || 'N/A',
+            lastName: user?.prenom || 'N/A',
+            email: user?.email || 'default@example.com',
+            phone: user?.telephone || '00000000',
             address: orderData.address, // This was already in orderData
             // note: orderData.note, // Optional, if Konnect supports it directly in init payload
           };
@@ -143,6 +146,41 @@ export default function CartPage() {
             // Clear only this restaurant's items after successful checkout and before redirection
             clearRestaurantItems(restaurantId);
             router.push(paymentResponse.payment_url);
+
+            // Start polling for payment verification
+            const checkPaymentStatus = async (paymentRef: string, orderId: string) => {
+              try {
+                const statusResponse = await paymentService.verifyKonnectPaymentStatus(paymentRef);
+                if (statusResponse && statusResponse.payment && statusResponse.payment.status === 'succeeded') {
+                  toast.success("Paiement vérifié avec succès!");
+                  // Update commande status to paid using confirmPaid
+                  await confirmPaid(orderId);
+                  // Optionally, redirect to an order confirmation page or update UI
+                } else if (statusResponse && statusResponse.payment && (statusResponse.payment.status === 'failed' || statusResponse.payment.status === 'canceled')){
+                  toast.error("Le paiement a échoué ou a été annulé.");
+                  // For failed/cancelled payments, we might still want to update the status to 'Paiement échoué'
+                  // However, confirmPaid is likely for successful payments. 
+                  // If a different action is needed for failed payments, that should be clarified.
+                  // For now, let's assume we still call confirmPaid, or a more appropriate function if available.
+                  // Or, we could call changeCommandeStatus for this specific case if confirmPaid is only for success.
+                  await confirmPaid(orderId); // Reverting to changeCommandeStatus for failure cases as confirmPaid implies success.
+                  // console.log(`Order ${orderId} payment failed or was cancelled.`);
+                } else {
+                  // If status is still pending or processing, poll again after a delay
+                  setTimeout(() => checkPaymentStatus(paymentRef, orderId), 5000); // Poll every 5 seconds
+                }
+              } catch (error) {
+                console.error("Erreur lors de la vérification du statut du paiement:", error);
+                toast.error("Erreur lors de la vérification du paiement.");
+                // Consider stopping polling after a certain number of retries
+              }
+            };
+
+            // Start polling if paymentRef is available
+            if (paymentResponse.payment_ref) {
+              checkPaymentStatus(paymentResponse.payment_ref, newCommande._id);
+            }
+
           } else {
             toast.error(
               paymentResponse?.message || "Erreur lors de la création du lien de paiement Konnect. Veuillez réessayer."

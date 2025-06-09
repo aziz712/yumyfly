@@ -202,7 +202,7 @@ export default function RestaurantPage() {
           <Image
             src={
               process.env.NEXT_PUBLIC_APP_URL +
-                (restaurant?.images?.[0] ?? "/placeholder.svg") ||
+              (restaurant?.images?.[0] ?? "/placeholder.svg") ||
               "/placeholder.svg?height=400&width=1200" ||
               "/placeholder.svg"
             }
@@ -213,11 +213,10 @@ export default function RestaurantPage() {
           <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent"></div>
           <div className="absolute bottom-0 left-0 right-0 p-6">
             <Badge
-              className={`mb-3 ${
-                isRestaurantOpen()
+              className={`mb-3 ${isRestaurantOpen()
                   ? "bg-green-500 hover:bg-green-600"
                   : "bg-red-500 hover:bg-red-600"
-              }`}
+                }`}
             >
               {isRestaurantOpen() ? "Ouvert" : "Fermé"}
             </Badge>
@@ -289,11 +288,10 @@ export default function RestaurantPage() {
                   variant={
                     activeCategory === category._id ? "default" : "outline"
                   }
-                  className={`rounded-full ${
-                    activeCategory === category._id
+                  className={`rounded-full ${activeCategory === category._id
                       ? "bg-orange-500 hover:bg-orange-600"
                       : ""
-                  }`}
+                    }`}
                   onClick={() => setActiveCategory(category._id)}
                 >
                   {category.nom}
@@ -313,9 +311,34 @@ export default function RestaurantPage() {
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {getDishesByCategory(activeCategory).length > 0 ? (
-                  getDishesByCategory(activeCategory).map((plat) => (
-                    <PlatCard plat={plat} />
-                  ))
+                  getDishesByCategory(activeCategory).map((plat) => {
+                    let categoryObj = undefined;
+                    if (typeof plat.categorie === "string" && restaurant?.categories) {
+                      categoryObj = restaurant.categories.find(
+                        (cat: any) => cat._id === plat.categorie
+                      );
+                    } else if (plat.categorie && typeof plat.categorie === "object") {
+                      categoryObj = plat.categorie;
+                    }
+
+                    let restaurantObj = undefined;
+                    if (typeof plat.restaurant === "string" && restaurant) {
+                      restaurantObj = { nom: restaurant.nom };
+                    } else if (plat.restaurant && typeof plat.restaurant === "object") {
+                      restaurantObj = plat.restaurant;
+                    }
+
+                    return (
+                      <PlatCard
+                        key={plat._id}
+                        plat={{
+                          ...plat,
+                          categorie: categoryObj ? { nom: categoryObj.nom } : undefined,
+                          restaurant: restaurantObj ? { nom: restaurantObj.nom } : undefined,
+                        }}
+                      />
+                    );
+                  })
                 ) : (
                   <div className="col-span-full text-center py-8">
                     <p className="text-gray-500">
@@ -469,25 +492,25 @@ export default function RestaurantPage() {
                   <div className="flex gap-2">
                     {((isAuthenticated && user?._id === review.client?._id) ||
                       user?.role === "admin") && (
-                      <>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => handleOpenUpdateModal(review)}
-                          className="h-8 w-8"
-                        >
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => handleDeleteMyAvis(review._id)}
-                          className="h-8 w-8 text-red-500 hover:text-red-700"
-                        >
-                          <Trash className="h-4 w-4" />
-                        </Button>
-                      </>
-                    )}
+                        <>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleOpenUpdateModal(review)}
+                            className="h-8 w-8"
+                          >
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleDeleteMyAvis(review._id)}
+                            className="h-8 w-8 text-red-500 hover:text-red-700"
+                          >
+                            <Trash className="h-4 w-4" />
+                          </Button>
+                        </>
+                      )}
                   </div>
                 </div>
                 <p>{review.commentaire}</p>

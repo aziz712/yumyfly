@@ -81,12 +81,13 @@ export default function PlatComments({ platId, comments }: PlatCommentsProps) {
           comments.map((comment, index) => (
             <div key={index} className="flex gap-4">
               <Avatar className="h-10 w-10">
-                <AvatarImage
-                  src={`${process.env.NEXT_PUBLIC_APP_URL || ""}${
-                    comment.utilisateur.photoProfil
-                  }`}
-                  alt="User"
-                />
+              <AvatarImage
+                src={
+                  process.env.NEXT_PUBLIC_APP_URL +
+                  (user?.photoProfil ?? "/default-profile.png")
+                }
+                alt="Profile"
+              />
                 <AvatarFallback>
                   {getInitials(comment.utilisateur)}
                 </AvatarFallback>

@@ -13,7 +13,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Mail, Phone, MapPin, Calendar } from "lucide-react";
 import { format } from "date-fns";
 import useAdminStore from "@/store/useAdminStore";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
@@ -78,6 +78,13 @@ export default function OtherUserProfile() {
           <CardContent className="p-0">
             <div className="flex flex-col items-center sm:flex-row sm:items-start p-6 -mt-12 relative">
               <Avatar className="h-24 w-24 border-4 border-background shadow-xl">
+              <AvatarImage
+                src={
+                  process.env.NEXT_PUBLIC_APP_URL +
+                  (user?.photoProfil ?? "/default-profile.png")
+                }
+                alt="Profile"
+              />
                 <AvatarFallback className="text-2xl bg-gradient-to-br from-purple-500 to-indigo-600 text-white">
                   {getInitials(user.prenom || "N/A", user.nom || "N/A")}
                 </AvatarFallback>

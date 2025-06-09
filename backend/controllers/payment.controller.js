@@ -38,7 +38,7 @@ exports.initiateKonnectPayment = async (req, res) => {
 
     // Konnect expects full URLs
     const successUrl = ensureProtocol(`${clientUrl}/client/orders?order_id=${orderId}&payment_status=success`, process.env.NODE_ENV === 'sandbox');
-    const failUrl = ensureProtocol(`${clientUrl}/client/cart?order_id=${orderId}&payment_status=failed`, process.env.NODE_ENV === 'sandbox');
+    const failUrl = ensureProtocol(`${clientUrl}/client/orders?order_id=${orderId}&payment_status=failed`, process.env.NODE_ENV === 'sandbox');
 
     let webhookUrlBase = ensureProtocol(apiUrl, process.env.NODE_ENV === 'sandbox');
     if (webhookUrlBase.endsWith('/')) {

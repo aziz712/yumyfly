@@ -52,7 +52,16 @@ export default function PlatCard({ plat }: PlatCardProps) {
       ? activePromotion.prixApresReduction
       : plat.prix;
 
-    addItem({ ...plat, prix: priceToAdd, promotion: activePromotion || undefined });
+    addItem({
+      ...plat,
+      prix: priceToAdd,
+      promotion: activePromotion || undefined,
+      quantity: 1,
+      categorie: plat.categorie?.nom || "Catégorie",
+      restaurant: plat.restaurant?.nom
+        ? { nom: plat.restaurant.nom }
+        : { nom: "Restaurant" }, // fallback if missing
+    });
 
     // Show success toast
     toast.success(`${plat.nom} ajouté au panier`, {

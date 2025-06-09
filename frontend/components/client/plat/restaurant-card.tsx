@@ -17,10 +17,11 @@ export default function RestaurantCard({ restaurant }: RestaurantCardProps) {
             <Image
               width={100}
               height={100}
-              src={
-                process.env.NEXT_PUBLIC_APP_URL + restaurant.images?.[0] ||
-                "/placeholder.svg?height=100&width=100"
-              }
+              src={(
+                restaurant.images && restaurant.images.length > 0
+                  ? process.env.NEXT_PUBLIC_APP_URL + restaurant.images[0]
+                  : "/placeholder.svg?height=100&width=100"
+              )}
               alt={restaurant.nom}
               className="h-full w-full object-cover"
             />

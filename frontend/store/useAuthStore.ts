@@ -6,7 +6,7 @@ import type { AxiosError } from "axios";
 import { resetAllStores } from "./store-reset";
 
 // Define User interface based on the mongoose schema
-interface User {
+export interface User {
   _id: string;
   nom?: string;
   prenom?: string;
@@ -74,7 +74,7 @@ interface AuthState {
   contactUs: (data: ContactUsData) => Promise<void>; // New contact us action
 }
 
-const useAuthStore = create<AuthState>()(
+export const useAuthStore = create<AuthState>()(
   devtools(
     persist(
       (set, get) => ({
