@@ -78,7 +78,7 @@ export default function HomePage() {
         data-aos="fade-up"
         data-aos-duration="300"
       >
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto px-5 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
               Why Choose YumyFly?
@@ -88,12 +88,12 @@ export default function HomePage() {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 ">
+          <div className="sm:grid sm:grid-cols-1 md:grid-cols-3 gap-8 flex flex-col flex-wrap justify-center items-center">
             <div className="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center mb-4">
               <Utensils className="h-6 w-6 text-orange-500" />
             </div>
             <h3 className="text-xl font-semibold mb-2">Quality Restaurants</h3>
-            <p className="text-gray-600">
+            <p className="text-gray-600 text-center text-wrap">
               Partner with the finest restaurants in your area for the best
               dining experience.
             </p>
@@ -102,7 +102,7 @@ export default function HomePage() {
               <Clock className="h-6 w-6 text-orange-500" />
             </div>
             <h3 className="text-xl font-semibold mb-2">Fast Delivery</h3>
-            <p className="text-gray-600">
+            <p className="text-gray-600 text-center text-wrap">
               Quick and reliable delivery service to get your food while it's
               hot.
             </p>
@@ -111,7 +111,7 @@ export default function HomePage() {
               <Shield className="h-6 w-6 text-orange-500" />
             </div>
             <h3 className="text-xl font-semibold mb-2">Secure Platform</h3>
-            <p className="text-gray-600">
+            <p className="text-gray-600 text-center text-wrap">
               Safe and secure transactions with real-time order tracking.
             </p>
           </div>
@@ -159,17 +159,20 @@ export default function HomePage() {
           {/* text content section */}
           <div className="flex flex-col justify-center gap-6 sm:pt-0 px-10 ">
             <h1 className="text-3xl sm:text-4xl font-bold">
-              Lorem, ipsum dolor.
+              Your smart food companion
             </h1>
             <p className="text-sm text-gray-500 tracking-wide leading-5">
-              Lorem ipsum, dolor sit amet consectetur adipisicing elit. Eaque
-              reiciendis inventore iste ratione ex alias quis magni at optio
+              Whether you're craving something spicy, savory, or sweet, we've got a dish just for you. 
+              Enjoy fast delivery, secure payments, and a menu that evolves with your taste.
               <br />
               <br />
-              Lorem ipsum dolor sit amet consectetur adipisicing elit. Beatae ab
-              sed, exercitationem minima aliquid eligendi distinctio? Fugit
-              repudiandae numquam hic quo recusandae. Excepturi totam ad nam
-              velit quasi quidem aspernatur.
+              Order from your favorite local restaurants in just a few taps. YumyFly learns
+               your tastes, recommends dishes you'll love, and ensures fast, 
+               reliable delivery every time. Whether you're at home or on the go, 
+               enjoy a personalized, effortless food ordering experience 
+               powered by smart technology.
+
+
             </p>
             <div className="flex gap-6">
               <div>
