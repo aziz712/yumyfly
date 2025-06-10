@@ -31,6 +31,7 @@ const allowedOrigins = [
   "https://m8ctpplt-3001.uks1.devtunnels.ms",
   "m8ctpplt-3000.uks1.devtunnels.ms",
   "m8ctpplt-3001.uks1.devtunnels.ms",
+  "https://yumyfly.vercel.app/",
   // "https://k8m7bj3t-3000.uks1.devtunnels.ms",
   // "https://k8m7bj3t-3001.uks1.devtunnels.ms",
   // "k8m7bj3t-3000.uks1.devtunnels.ms",

@@ -94,6 +94,6 @@ router.get(
 // Route to return a list of recommended dishes for a user
 router.get("/recommanded-plat/:userId", getHybridRecommendations);
 
-// Add this route to your client routes
+// promotion client routes
 router.get("/promotions", clientController.getAllActivePromotions);
 module.exports = router;

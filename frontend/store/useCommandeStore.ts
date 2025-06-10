@@ -119,6 +119,7 @@ export const useCommandeStore = create<CommandeState>()(
         // Pass Commande (Create a new order) (client)
         passCommande: async (payload) => {
           set({ isLoading: true, error: null });
+           console.log("Commande payload:", payload);
           try {
             const response = await api.post("/commandes", payload);
             const newCommande = response.data.commande;

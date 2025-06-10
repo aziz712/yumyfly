@@ -51,6 +51,7 @@ export default function PlatCard({ plat }: PlatCardProps) {
     const priceToAdd = activePromotion
       ? activePromotion.prixApresReduction
       : plat.prix;
+     //addItem({ ...plat, prix: priceToAdd, promotion: activePromotion || undefined });
 
     addItem({
       ...plat,
@@ -58,9 +59,7 @@ export default function PlatCard({ plat }: PlatCardProps) {
       promotion: activePromotion || undefined,
       quantity: 1,
       categorie: plat.categorie?.nom || "Catégorie",
-      restaurant: plat.restaurant?.nom
-        ? { nom: plat.restaurant.nom }
-        : { nom: "Restaurant" }, // fallback if missing
+      restaurant: plat.restaurant, 
     });
 
     // Show success toast

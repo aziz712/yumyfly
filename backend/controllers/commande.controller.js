@@ -17,6 +17,11 @@ exports.passCommande = async (req, res) => {
     // Fetch client details
     const client = await User.findById(userId);
     const restaurantData = await Restaurant.findById(restaurant);
+
+    if (!restaurantData) {
+      return res.status(404).json({ message: "Restaurant not found" });
+    }
+
     const restaurantOwner = await User.findById(restaurantData.proprietaire);
     if (!client) {
       return res.status(404).json({ message: "Client not found" });

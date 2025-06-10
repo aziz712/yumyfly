@@ -51,6 +51,7 @@ interface CartState {
 export const useCartStore = create<CartState>()(
   persist(
     (set, get) => ({
+      restaurantId: "",
       restaurantGroups: [],
       restaurantName: "",
 

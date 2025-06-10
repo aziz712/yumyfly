@@ -27,8 +27,8 @@ export default function CartPage() {
     getRestaurantGrandTotal,
   } = useCartStore();
 
-  const { passCommande, isLoading,  confirmPaid } = useCommandeStore();
-  const { user } = useAuthStore();
+  const { passCommande, isLoading, confirmPaid } = useCommandeStore();
+ const { user } = useAuthStore();
   const [address, setAddress] = useState("");
   const [restaurantNotes, setRestaurantNotes] = useState<
     Record<string, string>
@@ -36,6 +36,7 @@ export default function CartPage() {
   const [loadingRestaurantId, setLoadingRestaurantId] = useState<string | null>(
     null
   );
+
   const [coordinates, setCoordinates] = useState<{
     lat: number | null;
     lng: number | null;
@@ -74,6 +75,7 @@ export default function CartPage() {
 
   // Handle checkout for a specific restaurant
   const handleCheckout = async (restaurantId: string) => {
+    // Check if the restaurant exists in the cart
     // Validate address
     if (!address) {
       toast.error("Veuillez ajouter une adresse de livraison pour continuer");
@@ -88,6 +90,7 @@ export default function CartPage() {
       const restaurantGroup = restaurantGroups.find(
         (group) => group.restaurantId === restaurantId
       );
+      console.log("Restaurant group:", restaurantGroups);
 
       if (!restaurantGroup) {
         toast.error("Restaurant non trouvé dans le panier");
@@ -109,9 +112,7 @@ export default function CartPage() {
             : null,
         total: getRestaurantGrandTotal(restaurantId),
         serviceFee: getServiceFee(),
-        restaurant: restaurantId,
-        
-      
+        restaurant: restaurantId, // Use the actual restaurant ID from the group
       };
 
       console.log("Order data:", orderData);
@@ -156,7 +157,7 @@ export default function CartPage() {
                   // Update commande status to paid using confirmPaid
                   await confirmPaid(orderId);
                   // Optionally, redirect to an order confirmation page or update UI
-                } else if (statusResponse && statusResponse.payment && (statusResponse.payment.status === 'failed' || statusResponse.payment.status === 'canceled')){
+                } else if (statusResponse && statusResponse.payment && (statusResponse.payment.status === 'failed' || statusResponse.payment.status === 'canceled')) {
                   toast.error("Le paiement a échoué ou a été annulé.");
                   // For failed/cancelled payments, we might still want to update the status to 'Paiement échoué'
                   // However, confirmPaid is likely for successful payments. 
