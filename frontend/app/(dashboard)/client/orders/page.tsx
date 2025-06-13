@@ -23,27 +23,71 @@ import { fr } from "date-fns/locale";
 import { CalendarIcon, Search, Star } from "lucide-react";
 import { cn } from "@/lib/utils";
 import OrderCard from "@/components/orders/order-card";
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation'; // Corrected import
 import { FaCheckCircle, FaTimesCircle, FaWindowClose } from 'react-icons/fa';
 
 const PaymentStatusPopup = () => {
   const searchParams = useSearchParams();
+  const router = useRouter(); // Initialize router
   const paymentStatus = searchParams.get('payment_status');
   const orderId = searchParams.get('order_id');
   const paymentRef = searchParams.get('payment_ref');
   const [isVisible, setIsVisible] = useState(false);
+  const { deleteCommande, paidCommande } = useCommandeStore();
 
   useEffect(() => {
-    if (paymentStatus && (paymentStatus === 'success' || paymentStatus === 'failed')) {
-      setIsVisible(true);
-      const timer = setTimeout(() => {
-        setIsVisible(false);
-      }, 5000);
-      return () => clearTimeout(timer);
-    }
-  }, [paymentStatus]);
+    let popupVisibilityTimer: NodeJS.Timeout | undefined;
+    let deleteTimer: NodeJS.Timeout | undefined;
+    let paidTimer: NodeJS.Timeout | undefined;
 
-  if (!isVisible || !paymentStatus) return null;
+    if (paymentStatus && orderId) {
+      if (paymentStatus === 'success') {
+        setIsVisible(true);
+        paidTimer = setTimeout(() => {
+          paidCommande(orderId)
+          .then(() => {
+            setIsVisible(false);
+            router.push('/client/orders');
+          })
+          .catch(err => {
+            console.error("Failed to confirm payement:", err);
+          });
+        }, 3000);
+        
+      } else if (paymentStatus === 'failed' || !paymentStatus || !paymentRef) {
+        setIsVisible(true); 
+        deleteTimer = setTimeout(() => {
+          deleteCommande(orderId)
+          .then(() => {
+            setIsVisible(false);
+            router.push('/client/orders');
+          })
+          .catch(err => {
+            console.error("Failed to delete command:", err);
+          });
+        }, 3000); 
+      }
+
+      if (paymentStatus === 'success' || paymentStatus === 'failed'){
+        popupVisibilityTimer = setTimeout(() => {
+            setIsVisible(false);
+            //router.push('/client/orders'); // Redirect after popup hides
+          }, 3000); 
+      }
+    }
+    return () => {
+      if (popupVisibilityTimer) clearTimeout(popupVisibilityTimer);
+      if (deleteTimer) clearTimeout(deleteTimer);
+      if (paidTimer) clearTimeout(paidTimer);
+    };
+  }, [paymentStatus, orderId, deleteCommande, paidCommande, router]);
+
+  const handleClosePopup = () => {
+    setIsVisible(false);
+    router.push('/client/orders'); // Redirect on manual close
+  };
+
+  if (!isVisible || !paymentStatus || !orderId) return null;
 
   const isSuccess = paymentStatus === 'success';
 
@@ -51,7 +95,7 @@ const PaymentStatusPopup = () => {
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
       <div className="bg-white p-6 rounded-lg shadow-xl max-w-sm w-full text-center relative">
         <button
-          onClick={() => setIsVisible(false)}
+          onClick={handleClosePopup} // Use new handler for manual close
           className="absolute top-2 right-2 text-gray-500 hover:text-gray-700"
         >
           <FaWindowClose size={20} />

@@ -168,12 +168,31 @@ exports.estimationLivraison = async (req, res) => {
     res.status(500).json({ message: "Server Error", error: error.message });
   }
 };
+// change statut to paid 
+exports.paidCommande = async (req, res) => {
+  try {
+    const { commandeId } = req.params;
+    // Find the commande
+    const commande = await Commande.findById(commandeId)
+    if (!commande) {
+      return res.status(404).json({ message: "Commande not found" });
+    }
+    // Mark the commande as paid
+    commande.payee = true;
+    await commande.save();
+    res.json({ message: "Commande marked as paid successfully", commande });
 
+    
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ message: "Server Error", error: error.message });
+  }
+}
 // 🔹 Confirm Payment
 exports.confirmPaid = async (req, res) => {
   try {
     const { commandeId } = req.params;
-
+     
     // Find the commande
     const commande = await Commande.findById(commandeId)
       .populate("livreur")
@@ -309,6 +328,40 @@ exports.assignCommande = async (req, res) => {
     );
 
     res.json({ message: "Commande assigned successfully", commande });
+  } catch (error) {
+    res.status(500).json({ message: "Server Error", error: error.message });
+  }
+};
+
+// 🔹 Delete Commande by ID
+exports.deleteCommande = async (req, res) => {
+  try {
+    const { commandeId } = req.params;
+
+    const commande = await Commande.findById(commandeId);
+
+    if (!commande) {
+      return res.status(404).json({ message: "Commande not found" });
+    }
+
+    await Commande.findByIdAndDelete(commandeId);
+
+    res.json({ message: "Commande deleted successfully" });
+  } catch (error) {
+    console.error("Error deleting commande:", error);
+    res.status(500).json({ message: "Server Error", error: error.message });
+  }
+};
+
+// 🔹 Get All Commandes (Admin)
+exports.getAllCommandes = async (req, res) => {
+  try {
+    const commandes = await Commande.find()
+      .populate("client")
+      .populate("restaurant")
+      .populate("livreur")
+      .populate("plats.plat");
+    res.json({ message: "All commandes retrieved successfully", commandes });
   } catch (error) {
     res.status(500).json({ message: "Server Error", error: error.message });
   }

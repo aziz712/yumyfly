@@ -30,6 +30,20 @@ router.put(
   commandeController.confirmPaid
 );
 
+// 🔹 Delete Commande by ID
+router.delete(
+  "/:commandeId",
+  authMiddleware,
+  commandeController.deleteCommande
+);
+
+// 🔹 Get make commande paid 
+router.put(
+  "/:commandeId/paid",
+  authMiddleware,
+  commandeController.paidCommande
+)
+
 // 🔹 Get All Commandes (Retrieve all orders in the database)
 router.get("/", authMiddleware, commandeController.getAllCommandes);
 

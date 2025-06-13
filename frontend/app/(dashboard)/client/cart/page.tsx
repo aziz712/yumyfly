@@ -27,7 +27,13 @@ export default function CartPage() {
     getRestaurantGrandTotal,
   } = useCartStore();
 
-  const { passCommande, isLoading, confirmPaid } = useCommandeStore();
+  const {
+    passCommande,
+    confirmPaid,
+    // deleteCommande, // Remove deleteCommande if no longer needed here
+    isLoading,
+    error: commandeError,
+  } = useCommandeStore();
  const { user } = useAuthStore();
   const [address, setAddress] = useState("");
   const [restaurantNotes, setRestaurantNotes] = useState<
@@ -138,7 +144,7 @@ export default function CartPage() {
             email: user?.email || 'default@example.com',
             phone: user?.telephone || '00000000',
             address: orderData.address, // This was already in orderData
-            // note: orderData.note, // Optional, if Konnect supports it directly in init payload
+            
           };
 
           const paymentResponse = await paymentService.initiateKonnectPayment(paymentPayload);
@@ -146,38 +152,34 @@ export default function CartPage() {
           if (paymentResponse && paymentResponse.payment_url) {
             // Clear only this restaurant's items after successful checkout and before redirection
             clearRestaurantItems(restaurantId);
+            // Redirect to the payment URL
             router.push(paymentResponse.payment_url);
 
             // Start polling for payment verification
             const checkPaymentStatus = async (paymentRef: string, orderId: string) => {
               try {
                 const statusResponse = await paymentService.verifyKonnectPaymentStatus(paymentRef);
-                if (statusResponse && statusResponse.payment && statusResponse.payment.status === 'succeeded') {
+                if (statusResponse && statusResponse.payment && statusResponse.payment.status === 'success') {
+                  
                   toast.success("Paiement vérifié avec succès!");
-                  // Update commande status to paid using confirmPaid
-                  await confirmPaid(orderId);
-                  // Optionally, redirect to an order confirmation page or update UI
+                 // await confirmPaid(orderId);
                 } else if (statusResponse && statusResponse.payment && (statusResponse.payment.status === 'failed' || statusResponse.payment.status === 'canceled')) {
-                  toast.error("Le paiement a échoué ou a été annulé.");
-                  // For failed/cancelled payments, we might still want to update the status to 'Paiement échoué'
-                  // However, confirmPaid is likely for successful payments. 
-                  // If a different action is needed for failed payments, that should be clarified.
-                  // For now, let's assume we still call confirmPaid, or a more appropriate function if available.
-                  // Or, we could call changeCommandeStatus for this specific case if confirmPaid is only for success.
-                  await confirmPaid(orderId); // Reverting to changeCommandeStatus for failure cases as confirmPaid implies success.
-                  // console.log(`Order ${orderId} payment failed or was cancelled.`);
+                  toast.error("Le paiement a échoué ou a été annulé. Vous allez être redirigé.");
+                  // await deleteCommande(orderId); // Deletion handled on orders page
+                 // await confirmPaid(orderId); // Still mark as unpaid
                 } else {
-                  // If status is still pending or processing, poll again after a delay
-                  setTimeout(() => checkPaymentStatus(paymentRef, orderId), 5000); // Poll every 5 seconds
+                  setTimeout(() => checkPaymentStatus(paymentRef, orderId), 5000);
                 }
               } catch (error) {
                 console.error("Erreur lors de la vérification du statut du paiement:", error);
-                toast.error("Erreur lors de la vérification du paiement.");
-                // Consider stopping polling after a certain number of retries
+                toast.error("Erreur lors de la vérification du paiement. Vous allez être redirigé.");
+                // await deleteCommande(orderId); // Deletion handled on orders page
+               // await confirmPaid(orderId); // Still mark as unpaid in case of polling error
               }
             };
 
-            // Start polling if paymentRef is available
+            router.push(paymentResponse.payment_url);
+
             if (paymentResponse.payment_ref) {
               checkPaymentStatus(paymentResponse.payment_ref, newCommande._id);
             }

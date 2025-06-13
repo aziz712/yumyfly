@@ -87,7 +87,7 @@ exports.initiateKonnectPayment = async (req, res) => {
                 commande.paymentInfo = commande.paymentInfo || {};
                 commande.paymentInfo.konnectPaymentRef = response.data.paymentRef;
                 commande.paymentInfo.method = 'Konnect';
-                commande.paymentInfo.status = 'pending'; // Initial status
+                commande.paymentInfo.status = 'paid'; //  status
                 await commande.save();
             }
             res.status(200).json({ payment_url: response.data.payUrl, payment_ref: response.data.paymentRef });

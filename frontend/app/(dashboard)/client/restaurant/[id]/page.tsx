@@ -102,6 +102,8 @@ export default function RestaurantPage() {
     return restaurant.plats.filter((plat) => plat?.categorie === categoryId);
   };
 
+  // handle add to cart
+
   // Handle Create Avis
   const handleCreateAvis = async () => {
     if (!restaurant) return;
@@ -312,30 +314,36 @@ export default function RestaurantPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {getDishesByCategory(activeCategory).length > 0 ? (
                   getDishesByCategory(activeCategory).map((plat) => {
-                    let categoryObj = undefined;
-                    if (typeof plat.categorie === "string" && restaurant?.categories) {
-                      categoryObj = restaurant.categories.find(
+                    let categoryName: string | undefined = undefined;
+                    if (typeof plat.categorie === 'string' && restaurant?.categories) {
+                      const categoryObj = restaurant.categories.find(
                         (cat: any) => cat._id === plat.categorie
                       );
-                    } else if (plat.categorie && typeof plat.categorie === "object") {
-                      categoryObj = plat.categorie;
+                      if (categoryObj) {
+                        categoryName = categoryObj.nom;
+                      }
+                    } else if (plat.categorie && typeof plat.categorie === 'object' && 'nom' in plat.categorie) {
+                      categoryName = (plat.categorie as { nom: string }).nom;
                     }
 
-                    let restaurantObj = undefined;
-                    if (typeof plat.restaurant === "string" && restaurant) {
-                      restaurantObj = { nom: restaurant.nom };
-                    } else if (plat.restaurant && typeof plat.restaurant === "object") {
-                      restaurantObj = plat.restaurant;
-                    }
+                    // All plats on this page belong to the current restaurant.
+                    // PlatCard expects plat.restaurant.nom for display.
+                    const platRestaurantInfo = restaurant ? { nom: restaurant.nom } : undefined;
 
                     return (
                       <PlatCard
                         key={plat._id}
+                       //plat={plat}
                         plat={{
                           ...plat,
-                          categorie: categoryObj ? { nom: categoryObj.nom } : undefined,
-                          restaurant: restaurantObj ? { nom: restaurantObj.nom } : undefined,
+                          // Ensure categorie is { nom: string } | undefined
+                          categorie: categoryName ? { nom: categoryName } : undefined,
+                          // Ensure restaurant is { nom: string } | undefined for display within PlatCard
+                          //restaurant: platRestaurantInfo,
+                          restaurant: restaurant ? { nom: restaurant.nom } : undefined,
+                          
                         }}
+                         // This is for cart logic, correctly passed
                       />
                     );
                   })

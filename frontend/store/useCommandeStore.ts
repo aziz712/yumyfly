@@ -97,11 +97,13 @@ interface CommandeState {
     commandeId: string,
     estimationDate: Number
   ) => Promise<void>;
-  confirmPaid: (commandeId: string) => Promise<void>;
+  confirmPaid: (commandeId: string) => Promise<void>; 
   getAllCommandes: () => Promise<void>;
   getAllRestaurantCommandes: () => Promise<void>;
   getAllAssignedCommandes: () => Promise<void>;
   assignCommande: (commandeId: string, livreurId: string) => Promise<void>;
+  deleteCommande: (commandeId: string) => Promise<void>;
+  paidCommande: (commandeId: string) => Promise<void>;
   clearErrors: () => void;
   resetState: () => void;
 }
@@ -217,16 +219,40 @@ export const useCommandeStore = create<CommandeState>()(
           }
         },
 
-        // Confirm Paid (Primarily for COD or manual confirmation, webhook handles online payments)
-        // This function might still be relevant for Cash On Delivery orders.
-        // For Konnect, payment status is updated via webhook.
-        // If a manual confirmation is still needed for some cases, it can be kept.
-        // Otherwise, if all payments are online, this might be deprecated or refocused.
-        confirmPaid: async (commandeId) => {
+        // Confirm Paid change statut to payée
+
+        paidCommande: async (commandeId) => {
+          //set({ isLoading: true, error: null });
+          try {
+           
+            const response = await api.put(`/commandes/${commandeId}/paid`);
+            const updatedCommande = response.data.commande;
+
+            set((state) => ({
+              commandes: state.commandes.map((c) =>
+                c._id === commandeId ? updatedCommande : c
+              ),
+              currentCommande: state.currentCommande?._id === commandeId ? updatedCommande : state.currentCommande,
+              //isLoading: false,
+            }));
+
+            toast.success("Statut de la commande mis à jour."); // General message
+          } catch (error) {
+            const err = error as AxiosError<{ message: string }>;
+            const errorMessage =
+              err.response?.data?.message ||
+              "Erreur lors de la mise à jour du statut de la commande";
+            set({ error: errorMessage, isLoading: false });
+            toast.error(errorMessage);
+          }
+        },
+
+        // manual Confirm Paid 
+        
+          confirmPaid: async (commandeId) => {
           set({ isLoading: true, error: null });
           try {
-            // This endpoint might need adjustment if its sole purpose was for Paymee post-payment manual update.
-            // If it's for COD, it remains valid.
+           
             const response = await api.put(`/commandes/${commandeId}/confirm-paid`);
             const updatedCommande = response.data.commande;
 
@@ -296,6 +322,26 @@ export const useCommandeStore = create<CommandeState>()(
             toast.error(errorMessage);
           }
         },
+        // Delete Commande (restaurant owner)// Delete Commande by ID
+        deleteCommande: async (commandeId: string) => {
+          //set({ isLoading: true, error: null });
+          try {
+            await api.delete(`/commandes/${commandeId}`);
+            set((state) => ({
+              commandes: state.commandes.filter((c) => c._id !== commandeId),
+              //isLoading: false,
+            }));
+            //toast.success("Commande supprimée avec succès");
+          } catch (error) {
+            const err = error as AxiosError<{ message: string }>;
+            const errorMessage =
+              err.response?.data?.message ||
+              "Erreur lors de la suppression de la commande";
+            set({ error: errorMessage, isLoading: false });
+            toast.error(errorMessage);
+          }
+        },
+
 
         // Assign Commande to Livreur (restaurant owner)
         assignCommande: async (commandeId, livreurId) => {
