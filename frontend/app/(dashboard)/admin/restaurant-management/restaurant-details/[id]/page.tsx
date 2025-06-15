@@ -33,6 +33,7 @@ import { useAvisStore } from "@/store/useAvisStore";
 import { toast } from "sonner";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import Link from "next/link";
+import React from "react";
 
 type RestaurantPageProps = any & {
   params: {
@@ -41,7 +42,7 @@ type RestaurantPageProps = any & {
   searchParams?: Record<string, string | string[] | undefined>;
 };
 export default function RestaurantPublicPage({ params }: RestaurantPageProps) {
-  const { id } = params as { id: string };
+  const { id } = React.use(params) as { id: string };
   const {
     avis,
     loading,
@@ -151,7 +152,7 @@ export default function RestaurantPublicPage({ params }: RestaurantPageProps) {
             <Image
               src={
                 process.env.NEXT_PUBLIC_APP_URL +
-                  (restaurant?.images?.[0] ?? "") ||
+                (restaurant?.images?.[0] ?? "") ||
                 "/placeholder.svg?height=256&width=768"
               }
               alt={restaurant.nom}
@@ -233,8 +234,8 @@ export default function RestaurantPublicPage({ params }: RestaurantPageProps) {
 
               <TabsContent value="hours" className="mt-4">
                 {restaurant.workingHours &&
-                restaurant.workingHours.from &&
-                restaurant.workingHours.to ? (
+                  restaurant.workingHours.from &&
+                  restaurant.workingHours.to ? (
                   <div className="flex items-start gap-3">
                     <Clock className="h-5 w-5 text-muted-foreground mt-0.5 flex-shrink-0" />
                     <div>
@@ -291,8 +292,10 @@ export default function RestaurantPublicPage({ params }: RestaurantPageProps) {
                           <Avatar className="h-12 w-12">
                             <AvatarImage
                               src={
-                                review.client?.photoProfil ||
-                                "/placeholder.svg?height=96&width=96"
+                                review.client?.photoProfil
+                                  ? process.env.NEXT_PUBLIC_APP_URL +
+                                  review.client.photoProfil
+                                  : "/placeholder.svg?height=96&width=96"
                               }
                               alt="Profile"
                             />
@@ -361,8 +364,11 @@ export default function RestaurantPublicPage({ params }: RestaurantPageProps) {
                     {owner.photoProfil ? (
                       <Image
                         src={
-                          process.env.NEXT_PUBLIC_APP_URL + owner.photoProfil ||
-                          "/placeholder.svg"
+                          owner.photoProfil
+                            ? owner.photoProfil.startsWith("http")
+                              ? owner.photoProfil
+                              : process.env.NEXT_PUBLIC_APP_URL + owner.photoProfil
+                            : "/placeholder.svg"
                         }
                         alt={`${owner.prenom} ${owner.nom}`}
                         width={64}

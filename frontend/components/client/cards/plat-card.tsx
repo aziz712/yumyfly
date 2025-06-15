@@ -17,7 +17,7 @@ interface Plat {
   disponible: boolean;
   images: string[];
   categorie?: { nom: string };
-  restaurant?: { nom: string };
+  restaurant?: { _id: string; nom: string };  
   description: string;
   ingredients: string[];
   promotion?: {
@@ -105,7 +105,7 @@ export default function PlatCard({ plat }: PlatCardProps) {
               ? process.env.NEXT_PUBLIC_APP_URL + plat.images[0]
               : "/placeholder.svg") || "/placeholder.svg"
           }
-          alt={plat.nom}
+          alt={plat.nom || 'Plat image'}
           className="absolute inset-0 h-full w-full object-cover"
         />
 
@@ -127,7 +127,7 @@ export default function PlatCard({ plat }: PlatCardProps) {
       </div>
 
       {/* Content Section */}
-      <CardContent className="p-4 flex flex-col flex-grow space-y-4">
+      <CardContent  className="p-4 flex flex-col flex-grow space-y-4">
         {/* Title and Category */}
         <div className="flex justify-between items-start">
           <div>

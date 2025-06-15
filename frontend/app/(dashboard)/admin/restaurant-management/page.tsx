@@ -98,7 +98,8 @@ export default function RestaurantManagement() {
           restaurant.nom.toLowerCase().includes(searchLower) ||
           restaurant.adresse?.toLowerCase().includes(searchLower) ||
           restaurant.telephone?.toLowerCase().includes(searchLower) ||
-          restaurant.email?.toLowerCase().includes(searchLower)
+          (typeof restaurant.proprietaire === "object" &&
+            restaurant.proprietaire.email?.toLowerCase().includes(searchLower))
       );
     }
 

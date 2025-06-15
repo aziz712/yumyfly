@@ -216,8 +216,8 @@ export default function RestaurantPage() {
           <div className="absolute bottom-0 left-0 right-0 p-6">
             <Badge
               className={`mb-3 ${isRestaurantOpen()
-                  ? "bg-green-500 hover:bg-green-600"
-                  : "bg-red-500 hover:bg-red-600"
+                ? "bg-green-500 hover:bg-green-600"
+                : "bg-red-500 hover:bg-red-600"
                 }`}
             >
               {isRestaurantOpen() ? "Ouvert" : "Fermé"}
@@ -291,8 +291,8 @@ export default function RestaurantPage() {
                     activeCategory === category._id ? "default" : "outline"
                   }
                   className={`rounded-full ${activeCategory === category._id
-                      ? "bg-orange-500 hover:bg-orange-600"
-                      : ""
+                    ? "bg-orange-500 hover:bg-orange-600"
+                    : ""
                     }`}
                   onClick={() => setActiveCategory(category._id)}
                 >
@@ -314,36 +314,34 @@ export default function RestaurantPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {getDishesByCategory(activeCategory).length > 0 ? (
                   getDishesByCategory(activeCategory).map((plat) => {
-                    let categoryName: string | undefined = undefined;
-                    if (typeof plat.categorie === 'string' && restaurant?.categories) {
-                      const categoryObj = restaurant.categories.find(
+                    // Ensure categorie is always { nom: string }
+                    let categoryObj = undefined;
+                    if (typeof plat.categorie === "string" && restaurant?.categories) {
+                      const category = restaurant.categories.find(
                         (cat: any) => cat._id === plat.categorie
                       );
-                      if (categoryObj) {
-                        categoryName = categoryObj.nom;
-                      }
-                    } else if (plat.categorie && typeof plat.categorie === 'object' && 'nom' in plat.categorie) {
-                      categoryName = (plat.categorie as { nom: string }).nom;
+                      categoryObj = category ? { nom: category.nom } : { nom: plat.categorie };
+                    } else if (plat.categorie && typeof plat.categorie === "object" && "nom" in plat.categorie) {
+                      categoryObj = { nom: plat.categorie.nom };
                     }
 
-                    // All plats on this page belong to the current restaurant.
-                    // PlatCard expects plat.restaurant.nom for display.
-                    const platRestaurantInfo = restaurant ? { nom: restaurant.nom } : undefined;
+                    // Ensure restaurant is always { _id: string, nom: string }
+                    let restaurantObj = undefined;
+                    if (restaurant) {
+                      restaurantObj = {
+                        _id: restaurant._id,
+                        nom: restaurant.nom,
+                      };
+                    }
 
                     return (
                       <PlatCard
                         key={plat._id}
-                       //plat={plat}
                         plat={{
                           ...plat,
-                          // Ensure categorie is { nom: string } | undefined
-                          categorie: categoryName ? { nom: categoryName } : undefined,
-                          // Ensure restaurant is { nom: string } | undefined for display within PlatCard
-                          //restaurant: platRestaurantInfo,
-                          restaurant: restaurant ? { nom: restaurant.nom } : undefined,
-                          
+                          categorie: categoryObj,
+                          restaurant: restaurantObj,
                         }}
-                         // This is for cart logic, correctly passed
                       />
                     );
                   })

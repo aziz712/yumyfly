@@ -108,12 +108,11 @@ export default function RestaurantsCarousel() {
                       width={100}
                       height={100}
                       src={
-                        (process.env.NEXT_PUBLIC_APP_URL || "") +
-                          restaurant.images?.[0] ||
-                        "/placeholder.svg?height=200&width=300" ||
-                        "/placeholder.svg"
+                        restaurant.images?.[0]
+                          ? (process.env.NEXT_PUBLIC_APP_URL || "") + restaurant.images[0]
+                          : "/placeholder.svg?height=200&width=300"
                       }
-                      alt={restaurant.nom}
+                      alt={restaurant.nom || 'Restaurant image'}
                       className="absolute inset-0 h-full w-full object-cover"
                     />
                     <div className="absolute top-2 right-2">

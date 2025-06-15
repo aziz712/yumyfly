@@ -40,7 +40,7 @@ export default function CategoriesGrid() {
           slidesToScroll: 1,
         }}
       >
-        <CarouselContent className="-ml-4">
+        <CarouselContent className="-ml-4 mx-3">
           {categories.map((category) => (
             <CarouselItem
               key={category._id}

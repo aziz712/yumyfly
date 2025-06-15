@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Heart, ShoppingCart, Share2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -29,10 +29,17 @@ export default function PlatActions({
 }: PlatActionsProps) {
   const { user } = useAuthStore((state) => state);
   const { addItem, updateQuantity, restaurantGroups } = useCartStore();
-  const [isLiked, setIsLiked] = useState(
-    plat.likes?.includes(user?._id) || false
-  );
+  const [isLiked, setIsLiked] = useState(false);
   const [quantity, setQuantity] = useState(1);
+
+  // Effect to synchronize isLiked with the actual like status from props
+  useEffect(() => {
+    if (plat?.likes && user?._id) {
+      setIsLiked(plat.likes.includes(user._id));
+    } else {
+      setIsLiked(false);
+    }
+  }, [plat?.likes, user?._id]);
 
   // Get restaurant ID from plat
   const platRestaurantId =
@@ -54,8 +61,24 @@ export default function PlatActions({
   const existingQuantity = existingCartItem?.quantity || 0;
 
   const handleLike = async () => {
-    setIsLiked(!isLiked);
-    await onLike();
+    if (!user) {
+      toast.error("Please log in to like plats.");
+      return;
+    }
+    if (isLiking) return; // Prevent multiple clicks if already processing
+
+    const previousIsLiked = isLiked;
+    setIsLiked(!previousIsLiked); // Optimistic update
+
+    try {
+      await onLike(); // Call the passed-in like handler
+      // After onLike() completes, the parent component should refetch plat data.
+      // The useEffect above will then update isLiked based on the new plat.likes.
+    } catch (error) {
+      console.error("Failed to like/unlike plat:", error);
+      toast.error("Failed to update like status. Please try again.");
+      setIsLiked(previousIsLiked); // Revert optimistic update on error
+    }
   };
 
   const handleShare = () => {

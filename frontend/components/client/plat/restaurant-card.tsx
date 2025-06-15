@@ -22,7 +22,7 @@ export default function RestaurantCard({ restaurant }: RestaurantCardProps) {
                   ? process.env.NEXT_PUBLIC_APP_URL + restaurant.images[0]
                   : "/placeholder.svg?height=100&width=100"
               )}
-              alt={restaurant.nom}
+              alt={restaurant.nom || 'Restaurant image'}
               className="h-full w-full object-cover"
             />
           </div>
