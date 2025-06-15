@@ -7,7 +7,7 @@ exports.getHybridRecommendations = async (req, res) => {
 
   try {
     // Appel API Flask
-    const flaskRes = await axios.get("http://127.0.0.1:5001/recommend", {
+    const flaskRes = await axios.get("https://yumyfly.onrender.com/recommend", {
       params: { user_id: userId, weight },
     });
 
